@@ -12,8 +12,8 @@ fn main() -> ! {
 
     let mut rcc = dp.RCC.freeze(Config::hsi16());
 
-    let gpioa = dp.GPIOB.split(&mut rcc);
-    let mut led = gpioa.pb3.into_push_pull_output();
+    let gpiob = dp.GPIOB.split(&mut rcc);
+    let mut led = gpiob.pb3.into_push_pull_output();
 
     loop {
         led.set_low().unwrap();
