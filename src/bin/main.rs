@@ -9,6 +9,7 @@
 
 use esp_backtrace as _;
 use esp_hal::clock::CpuClock;
+use esp_hal::gpio::{Output, OutputConfig};
 use esp_hal::main;
 use esp_hal::time::{Duration, Instant};
 use log::info;
@@ -45,11 +46,16 @@ fn main() -> ! {
     let _ = peripherals.GPIO16;
     let _ = peripherals.GPIO17;
 
+    let mut led = Output::new(peripherals.GPIO8,esp_hal::gpio::Level::Low, OutputConfig::default());
+    
     loop {
-        info!("Hello world!");
         let delay_start = Instant::now();
         while delay_start.elapsed() < Duration::from_millis(500) {}
+        info!("High");
+        led.set_high();
+        while delay_start.elapsed() < Duration::from_millis(1000) {}
+        info!("Low");
+        led.set_low();
     }
 
-    // for inspiration have a look at the examples at https://github.com/esp-rs/esp-hal/tree/esp-hal-v1.1.0/examples
 }

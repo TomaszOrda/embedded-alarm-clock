@@ -11,21 +11,28 @@
             "attrs": {
                 "flashSize": "16"
             }
+        },
+        {
+            "type": "wokwi-led",
+            "id": "led1",
+            "top": -90,
+            "left": -80,
+            "attrs": { "color": "limegreen", "flip": "true" }
+        },
+        {
+            "type": "wokwi-resistor",
+            "id": "r2",
+            "top": -35,
+            "left": -35,
+            "attrs": { "value": "1000" }
         }
     ],
     "connections": [
-        [
-            "esp:TX",
-            "$serialMonitor:RX",
-            "",
-            []
-        ],
-        [
-            "esp:RX",
-            "$serialMonitor:TX",
-            "",
-            []
-        ]
+        [ "esp:TX", "$serialMonitor:RX", "", [] ],
+        [ "esp:RX", "$serialMonitor:TX", "", [] ],
+        [ "led1:A", "esp:8", "green", [ "v90", "h-95.4" ] ],
+        [ "esp:GND", "r2:2", "black", [ "h30", "v5" ] ],
+        [ "led1:C", "r2:1", "black", [ "v0" ] ]
     ],
     "serialMonitor": {
         "display": "terminal",
