@@ -1,4 +1,5 @@
 [wokwi]
 version = 1
-firmware = "target/thumbv6m-none-eabi/release/stm32-blink"
-elf = "target/thumbv6m-none-eabi/release/stm32-blink"
+gdbServerPort = 3333
+elf = "target/riscv32imc-unknown-none-elf/debug/esp32c3-template"
+firmware = "target/riscv32imc-unknown-none-elf/debug/esp32c3-template"
