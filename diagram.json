@@ -1,9 +1,10 @@
 {
     "version": 1,
+    "author": "Tomasz Orda",
     "editor": "wokwi",
     "parts": [
         {
-            "type": "board-esp32-c3-devkitm-1",
+            "type": "board-aitewinrobot-esp32c3-supermini",
             "id": "esp",
             "top": 0.59,
             "left": 0.67,
