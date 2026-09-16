@@ -46,7 +46,7 @@ fn main() -> ! {
     let _ = peripherals.GPIO16;
     let _ = peripherals.GPIO17;
 
-    let mut led = Output::new(peripherals.GPIO8,esp_hal::gpio::Level::Low, OutputConfig::default());
+    let mut led = Output::new(peripherals.GPIO2,esp_hal::gpio::Level::Low, OutputConfig::default());
     
     loop {
         let delay_start = Instant::now();

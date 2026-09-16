@@ -4,10 +4,10 @@
     "editor": "wokwi",
     "parts": [
         {
-            "type": "board-aitewinrobot-esp32c3-supermini",
+            "type": "board-xiao-esp32-c3",
             "id": "esp",
-            "top": 0.59,
-            "left": 0.67,
+            "top": 0,
+            "left": 0,
             "attrs": {
                 "flashSize": "16"
             }
@@ -23,16 +23,16 @@
             "type": "wokwi-resistor",
             "id": "r2",
             "top": -35,
-            "left": -35,
+            "left": -5,
             "attrs": { "value": "1000" }
         }
     ],
     "connections": [
         [ "esp:TX", "$serialMonitor:RX", "", [] ],
         [ "esp:RX", "$serialMonitor:TX", "", [] ],
-        [ "led1:A", "esp:8", "green", [ "v90", "h-95.4" ] ],
-        [ "esp:GND", "r2:2", "black", [ "h30", "v5" ] ],
-        [ "led1:C", "r2:1", "black", [ "v0" ] ]
+        [ "led1:A", "esp:D0", "green", [ "v67", "h-95" ] ],
+        [ "led1:C", "r2:1", "black", [ "v0" ] ],
+        [ "esp:GND", "r2:2", "black", [ "h20", "v5" ] ]
     ],
     "serialMonitor": {
         "display": "terminal",
