@@ -1,5 +1,17 @@
-[build]
-target = "thumbv6m-none-eabi"
+[target.riscv32imc-unknown-none-elf]
+runner = "espflash flash --monitor --chip esp32c3"
 
-[target.thumbv6m-none-eabi]
-rustflags = ["-C", "link-arg=-Tlink.x"]
+[env]
+ESP_LOG="info"
+
+[build]
+rustflags = [
+  # Required to obtain backtraces (e.g. when using the "esp-backtrace" crate.)
+  # NOTE: May negatively impact performance of produced code
+  "-C", "force-frame-pointers",
+]
+
+target = "riscv32imc-unknown-none-elf"
+
+[unstable]
+build-std = ["core"]

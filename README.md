@@ -4,4 +4,4 @@ As a prerequisite you need to install [Rust](https://doc.rust-lang.org/book/ch01
 
 To start you need to ``cargo build --release``. Then open `diagram.json` and run the simulation.
 
-The template is based on [Uri Shaked example project](https://wokwi.com/projects/367244067477216257) and some very very basic generated code.
+This project started using https://github.com/esp-rs/esp-generate/tree/main template.
