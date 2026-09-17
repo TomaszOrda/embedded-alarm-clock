@@ -99,17 +99,23 @@ fn main() -> ! {
     }
 
 }
+type SPI = Spi<'static, Blocking>;
+type CS = Output<'static>;
+type BUSY = Input<'static>;
+type DC = Output<'static>;
+type RST = Output<'static>;
+type SPIDEV = ExclusiveDevice<SPI, CS, Delay>;
 
 struct EPaperDisplay
 {
-    spi_dev: ExclusiveDevice<Spi<'static, Blocking>, Output<'static>, Delay>,
-    epd2in9: Epd2in9<ExclusiveDevice<Spi<'static, Blocking>, Output<'static>, Delay>, Input<'static>, Output<'static>, Output<'static>, Delay>,
+    spi_dev: SPIDEV,
+    epd2in9: Epd2in9<SPIDEV, BUSY, DC, RST, Delay>,
     display: Display2in9,
     delay: Delay
 }
 impl EPaperDisplay
 {
-    pub fn new(spi: Spi<'static, Blocking>, cs: Output<'static>, busy: Input<'static>, dc: Output<'static>, rst: Output<'static>) -> Self{
+    pub fn new(spi: SPI, cs: CS, busy: BUSY, dc: DC, rst: RST) -> Self{
         let mut delay = Delay::new();
         let mut spi_dev = ExclusiveDevice::new(spi, cs, Delay::new()).unwrap();
         let mut this = Self {
