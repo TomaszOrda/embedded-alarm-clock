@@ -7,12 +7,23 @@
 )]
 #![deny(clippy::large_stack_frames)]
 
+
+use embedded_graphics::draw_target::DrawTarget;
+use embedded_hal_bus::spi::ExclusiveDevice;
+use epd_waveshare::epd2in9_v2::*;
+use epd_waveshare::prelude::*;
 use esp_backtrace as _;
+use esp_hal::Blocking;
 use esp_hal::clock::CpuClock;
-use esp_hal::gpio::{Output, OutputConfig};
+use esp_hal::gpio::Level::{self};
+use esp_hal::gpio::{Input, InputConfig, Output, OutputConfig};
 use esp_hal::main;
-use esp_hal::time::{Duration, Instant};
+use esp_hal::spi::Mode;
+use esp_hal::spi::master::{Config, Spi};
+use esp_hal::time::{Duration, Instant, Rate};
 use log::info;
+use esp_hal::delay::Delay;
+
 
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
@@ -32,6 +43,11 @@ fn main() -> ! {
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let peripherals = esp_hal::init(config);
 
+    let spi_mosi = peripherals.GPIO10;
+    let spi_sck = peripherals.GPIO8;
+    let _u0rxd = peripherals.GPIO20;
+    let _i2c_sda = peripherals.GPIO6;
+    let _i2c_scl = peripherals.GPIO7;
     // The following pins are used to bootstrap the chip. They are available
     // for use, but check the datasheet of the module for more information on them.
     // - GPIO2
@@ -46,16 +62,44 @@ fn main() -> ! {
     let _ = peripherals.GPIO16;
     let _ = peripherals.GPIO17;
 
+    let cs = Output::new(peripherals.GPIO9, Level::High, OutputConfig::default());
+    let dc = Output::new(peripherals.GPIO3, Level::High, OutputConfig::default());
+    let rst = Output::new(peripherals.GPIO4, Level::High, OutputConfig::default());
+    let busy = Input::new(peripherals.GPIO21, InputConfig::default());
+
     let mut led = Output::new(peripherals.GPIO2,esp_hal::gpio::Level::Low, OutputConfig::default());
-    
+
+    let spi = Spi::new(peripherals.SPI2, 
+                       Config::default().with_mode(Mode::_0)
+                                        .with_frequency(Rate::from_mhz(4)))
+                                        .unwrap()
+                                        .with_sck(spi_sck)
+                                        .with_mosi(spi_mosi);
+    let mut spi_dev = ExclusiveDevice::new(spi, cs, Delay::new()).unwrap();
+
+    let mut epd2in9 = Epd2in9::new(&mut spi_dev, busy, dc, rst, &mut Delay::new(), None).unwrap();
+    let mut display = Display2in9::default();
+    display.clear(Color::Black);
+    epd2in9.update_old_frame(&mut spi_dev, &display.buffer(), &mut Delay::new()).unwrap();
+    epd2in9.display_frame(&mut spi_dev, &mut Delay::new()).unwrap();
+
+    info!("frame displayed");
     loop {
         let delay_start = Instant::now();
         while delay_start.elapsed() < Duration::from_millis(500) {}
         info!("High");
         led.set_high();
+        display.clear(Color::White);
+        epd2in9.update_new_frame(&mut spi_dev, &display.buffer(), &mut Delay::new()).unwrap();
+        epd2in9.display_new_frame(&mut spi_dev, &mut Delay::new()).unwrap();
+
         while delay_start.elapsed() < Duration::from_millis(1000) {}
         info!("Low");
         led.set_low();
+        display.clear(Color::Black);
+        epd2in9.update_new_frame(&mut spi_dev, &display.buffer(), &mut Delay::new()).unwrap();
+        epd2in9.display_new_frame(&mut spi_dev, &mut Delay::new()).unwrap();
+
     }
 
 }
