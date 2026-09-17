@@ -9,6 +9,10 @@
 
 
 use embedded_graphics::draw_target::DrawTarget;
+use embedded_graphics::geometry::Point;
+use embedded_graphics::primitives::Circle;
+use embedded_graphics::primitives::PrimitiveStyle;
+use embedded_graphics::prelude::*;
 use embedded_hal_bus::spi::ExclusiveDevice;
 use epd_waveshare::epd2in9_v2::*;
 use epd_waveshare::prelude::*;
@@ -75,31 +79,62 @@ fn main() -> ! {
                                         .unwrap()
                                         .with_sck(spi_sck)
                                         .with_mosi(spi_mosi);
-    let mut spi_dev = ExclusiveDevice::new(spi, cs, Delay::new()).unwrap();
-
-    let mut epd2in9 = Epd2in9::new(&mut spi_dev, busy, dc, rst, &mut Delay::new(), None).unwrap();
-    let mut display = Display2in9::default();
-    display.clear(Color::Black);
-    epd2in9.update_old_frame(&mut spi_dev, &display.buffer(), &mut Delay::new()).unwrap();
-    epd2in9.display_frame(&mut spi_dev, &mut Delay::new()).unwrap();
+    let mut EPaper_display = EPaperDisplay::new(spi, cs, busy, dc, rst);
+    EPaper_display.wait_till_idle().unwrap();
 
     info!("frame displayed");
     loop {
         let delay_start = Instant::now();
-        while delay_start.elapsed() < Duration::from_millis(500) {}
+        while delay_start.elapsed() < Duration::from_millis(1000) {}
         info!("High");
         led.set_high();
-        display.clear(Color::White);
-        epd2in9.update_new_frame(&mut spi_dev, &display.buffer(), &mut Delay::new()).unwrap();
-        epd2in9.display_new_frame(&mut spi_dev, &mut Delay::new()).unwrap();
+        EPaper_display.draw_circle(Color::White);
 
+        let delay_start = Instant::now();
         while delay_start.elapsed() < Duration::from_millis(1000) {}
         info!("Low");
         led.set_low();
-        display.clear(Color::Black);
-        epd2in9.update_new_frame(&mut spi_dev, &display.buffer(), &mut Delay::new()).unwrap();
-        epd2in9.display_new_frame(&mut spi_dev, &mut Delay::new()).unwrap();
+        EPaper_display.draw_circle(Color::Black);
 
     }
 
+}
+
+struct EPaperDisplay
+{
+    spi_dev: ExclusiveDevice<Spi<'static, Blocking>, Output<'static>, Delay>,
+    epd2in9: Epd2in9<ExclusiveDevice<Spi<'static, Blocking>, Output<'static>, Delay>, Input<'static>, Output<'static>, Output<'static>, Delay>,
+    display: Display2in9,
+    delay: Delay
+}
+impl EPaperDisplay
+{
+    pub fn new(spi: Spi<'static, Blocking>, cs: Output<'static>, busy: Input<'static>, dc: Output<'static>, rst: Output<'static>) -> Self{
+        let mut delay = Delay::new();
+        let mut spi_dev = ExclusiveDevice::new(spi, cs, Delay::new()).unwrap();
+        let mut this = Self {
+            epd2in9 : Epd2in9::new(&mut spi_dev, busy, dc, rst, &mut delay,None).unwrap(),
+            delay,
+            spi_dev,
+            display : Display2in9::default()
+        };
+        this.display.clear(Color::Black);
+        this.epd2in9.update_old_frame(&mut this.spi_dev, &this.display.buffer(), &mut this.delay).unwrap();
+        this.epd2in9.display_frame(&mut this.spi_dev, &mut this.delay).unwrap();
+        this
+    }
+    pub fn draw_circle(&mut self, color: Color){
+        Circle::new(Point::new(10, 10), 20)
+        .into_styled(PrimitiveStyle::with_fill(color))
+        .draw(&mut self.display) // or .draw(&mut epd.display)
+        .unwrap();
+        self.push_quick();
+    }
+    fn push_quick(&mut self){
+        self.epd2in9.update_new_frame(&mut self.spi_dev, &self.display.buffer(), &mut self.delay).unwrap();
+        self.epd2in9.display_new_frame(&mut self.spi_dev, &mut self.delay).unwrap();
+    }
+    pub fn wait_till_idle(&mut self) -> Result<(), embedded_hal_bus::spi::DeviceError<esp_hal::spi::Error, core::convert::Infallible>>{
+        return self.epd2in9.wait_until_idle(&mut self.spi_dev, &mut self.delay)
+    }
 }
