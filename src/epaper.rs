@@ -1,11 +1,9 @@
 use embedded_graphics::draw_target::DrawTarget;
 use embedded_graphics::geometry::Point;
-use embedded_graphics::primitives::Circle;
-use embedded_graphics::primitives::PrimitiveStyle;
+use embedded_graphics::primitives::{Circle, PrimitiveStyle};
 use embedded_graphics::prelude::*;
 use embedded_hal_bus::spi::ExclusiveDevice;
-use epd_waveshare::epd2in9_v2::*;
-use epd_waveshare::prelude::*;
+use epd_waveshare::{epd2in9_v2::*, prelude::*};
 use esp_backtrace as _;
 use esp_hal::Blocking;
 use esp_hal::gpio::{Input, Output};

@@ -12,11 +12,9 @@ use esp32c3_template::epaper::EPaperDisplay;
 use epd_waveshare::prelude::*;
 use esp_backtrace as _;
 use esp_hal::clock::CpuClock;
-use esp_hal::gpio::Level::{self};
-use esp_hal::gpio::{Input, InputConfig, Output, OutputConfig};
+use esp_hal::gpio::{Input, InputConfig, Output, OutputConfig, Level::{self}};
 use esp_hal::main;
-use esp_hal::spi::Mode;
-use esp_hal::spi::master::{Config, Spi};
+use esp_hal::spi::{Mode, master::{Config, Spi}};
 use esp_hal::time::{Duration, Instant, Rate};
 use log::info;
 
