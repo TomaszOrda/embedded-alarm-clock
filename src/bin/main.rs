@@ -78,6 +78,7 @@ fn main() -> ! {
         info!("High");
         led.set_high();
         EPaper_display.draw_circle(Color::Black);
+        EPaper_display.flush();
         EPaper_display.wait_till_idle().unwrap();
 
         let delay_start = Instant::now();
@@ -85,6 +86,7 @@ fn main() -> ! {
         info!("Low");
         led.set_low();
         EPaper_display.draw_circle(Color::White);
+        EPaper_display.flush();
         EPaper_display.wait_till_idle().unwrap();
 
     }

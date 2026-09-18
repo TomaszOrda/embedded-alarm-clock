@@ -24,11 +24,11 @@ pub struct EPaperDisplay
     epd2in9: Epd2in9<SPIDEV, BUSY, DC, RST, Delay>,
     display: Display2in9,
     delay: Delay,
-    partial_refresh_counter: u8
+    partial_flush_counter: u8
 }
 impl EPaperDisplay
 {
-    const PARTIAL_REFRESH_LIMIT: u8 = 31;
+    const PARTIAL_FLUSH_LIMIT: u8 = 31;
     pub fn new(spi: SPI, cs: CS, busy: BUSY, dc: DC, rst: RST) -> Self{
         let mut delay = Delay::new();
         let mut spi_dev = ExclusiveDevice::new(spi, cs, Delay::new()).unwrap();
@@ -37,10 +37,10 @@ impl EPaperDisplay
             delay,
             spi_dev,
             display : Display2in9::default(),
-            partial_refresh_counter : 0
+            partial_flush_counter : 0
         };
         this.display.clear(Color::White);
-        this.push_full();
+        this.flush_full();
         this
     }
     pub fn draw_circle(&mut self, color: Color){
@@ -48,29 +48,28 @@ impl EPaperDisplay
         .into_styled(PrimitiveStyle::with_fill(color))
         .draw(&mut self.display) // or .draw(&mut epd.display)
         .unwrap();
-        self.push_image();
     }
-    fn push_image(&mut self){
-        if self.partial_refresh_limit_reached(){
-            self.push_full();
+    pub fn flush(&mut self){
+        if self.partial_flush_limit_reached(){
+            self.flush_full();
         }else{
-            self.push_quick();
+            self.flush_quick();
         }
     }
-    fn push_quick(&mut self){
+    fn flush_quick(&mut self){
         self.epd2in9.update_new_frame(&mut self.spi_dev, &self.display.buffer(), &mut self.delay).unwrap();
         self.epd2in9.display_new_frame(&mut self.spi_dev, &mut self.delay).unwrap();
-        self.partial_refresh_counter+=1;
+        self.partial_flush_counter+=1;
     }
-    fn push_full(&mut self){    
+    fn flush_full(&mut self){    
         self.epd2in9.update_old_frame(&mut self.spi_dev, &self.display.buffer(), &mut self.delay).unwrap();
         self.epd2in9.display_frame(&mut self.spi_dev, &mut self.delay).unwrap();
-        self.partial_refresh_counter = 0;
+        self.partial_flush_counter = 0;
     }
     pub fn wait_till_idle(&mut self) -> Result<(), embedded_hal_bus::spi::DeviceError<esp_hal::spi::Error, core::convert::Infallible>>{
         return self.epd2in9.wait_until_idle(&mut self.spi_dev, &mut self.delay)
     }
-    fn partial_refresh_limit_reached(&self) -> bool{
-        return self.partial_refresh_counter >= Self::PARTIAL_REFRESH_LIMIT;
+    fn partial_flush_limit_reached(&self) -> bool{
+        return self.partial_flush_counter >= Self::PARTIAL_FLUSH_LIMIT;
     }
 }
