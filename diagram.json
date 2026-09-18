@@ -28,8 +28,6 @@
         }
     ],
     "connections": [
-        [ "esp:TX", "$serialMonitor:RX", "", [] ],
-        [ "esp:RX", "$serialMonitor:TX", "", [] ],
         [ "led1:A", "esp:D0", "green", [ "v67", "h-95" ] ],
         [ "led1:C", "r2:1", "black", [ "v0" ] ],
         [ "esp:GND", "r2:2", "black", [ "h20", "v5" ] ]
