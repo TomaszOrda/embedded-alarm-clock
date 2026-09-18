@@ -226,6 +226,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "embedded-alarm-clock"
+version = "0.1.0"
+dependencies = [
+ "critical-section",
+ "esp-backtrace",
+ "esp-bootloader-esp-idf",
+ "esp-hal",
+ "esp-println",
+ "log",
+]
+
+[[package]]
 name = "embedded-hal"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -489,18 +501,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "21e89ed62cf6c043a6d29c520b02a13b359ec8a75d67b65d4330ed717d15fe97"
 dependencies = [
  "vcell",
-]
-
-[[package]]
-name = "esp32c3-template"
-version = "0.1.0"
-dependencies = [
- "critical-section",
- "esp-backtrace",
- "esp-bootloader-esp-idf",
- "esp-hal",
- "esp-println",
- "log",
 ]
 
 [[package]]
