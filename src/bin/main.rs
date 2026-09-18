@@ -60,8 +60,6 @@ fn main() -> ! {
     let rst = Output::new(peripherals.GPIO4, Level::High, OutputConfig::default());
     let busy = Input::new(peripherals.GPIO21, InputConfig::default());
 
-    let mut led = Output::new(peripherals.GPIO2,esp_hal::gpio::Level::Low, OutputConfig::default());
-
     let spi = Spi::new(peripherals.SPI2, 
                        Config::default().with_mode(Mode::_0)
                                         .with_frequency(Rate::from_mhz(4)))
@@ -76,7 +74,6 @@ fn main() -> ! {
         let delay_start = Instant::now();
         while delay_start.elapsed() < Duration::from_millis(1000) {}
         info!("High");
-        led.set_high();
         EPaper_display.draw_circle(Color::Black);
         EPaper_display.flush();
         EPaper_display.wait_till_idle().unwrap();
@@ -84,7 +81,6 @@ fn main() -> ! {
         let delay_start = Instant::now();
         while delay_start.elapsed() < Duration::from_millis(1000) {}
         info!("Low");
-        led.set_low();
         EPaper_display.draw_circle(Color::White);
         EPaper_display.flush();
         EPaper_display.wait_till_idle().unwrap();
