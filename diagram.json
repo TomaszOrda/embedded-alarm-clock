@@ -15,7 +15,7 @@
         {
             "type": "wokwi-led",
             "id": "led1",
-            "top": -90,
+            "top": -120,
             "left": -80,
             "attrs": { "color": "limegreen", "flip": "true" }
         },
@@ -25,12 +25,17 @@
             "top": -35,
             "left": -5,
             "attrs": { "value": "1000" }
-        }
+        },
+        { "type": "wokwi-ds1307", "id": "rtc1", "top": 26.5, "left": -200, "attrs": {}, "rotate": 180 }
     ],
     "connections": [
         [ "led1:A", "esp:D0", "green", [ "v67", "h-95" ] ],
         [ "led1:C", "r2:1", "black", [ "v0" ] ],
-        [ "esp:GND", "r2:2", "black", [ "h20", "v5" ] ]
+        [ "esp:GND", "r2:2", "black", [ "h20", "v5" ] ],
+        [ "rtc1:SDA", "esp:D4", "green", [ "h15", "v5" ] ],
+        [ "rtc1:SCL", "esp:D5", "green", [  ] ],
+        [ "rtc1:GND", "esp:GND", "black", [ "h25", "v-140", "h175", "v-130" ] ],
+        [ "rtc1:5V", "esp:5V", "red", [ "h20", "v-135", "h185", "v-130" ] ]
     ],
     "serialMonitor": {
         "display": "terminal",
