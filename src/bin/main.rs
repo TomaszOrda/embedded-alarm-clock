@@ -56,18 +56,17 @@ fn main() -> ! {
     let i2c = i2c::master::I2c::new(peripherals.I2C0,I2CConfig::default()).unwrap()
                                                                                              .with_scl(i2c_scl)
                                                                                              .with_sda(i2c_sda);
-    let mut rtc= RTC::new(i2c);
+    let mut rtc: RTC = RTC::new(i2c, peripherals.LPWR, #[cfg(not(debug_assertions))] peripherals.GPIO5.into_pull_up_input().into());
 
-    loop {
-        let delay_start = Instant::now();
-        while delay_start.elapsed() < Duration::from_millis(500) {}
-        info!("High");
-        led.set_high();
-        info!("Current time {}", rtc.get_time_hh_mm().unwrap_or(format!("??:??").unwrap()));
-        
-        while delay_start.elapsed() < Duration::from_millis(1000) {}
-        info!("Low");
-        led.set_low();
-    }
 
+    info!("High");
+    led.set_high();
+    info!("Current time {}", rtc.get_time_hh_mm().unwrap_or(format!("??:??").unwrap()));
+
+    let delay_start = Instant::now();
+    while delay_start.elapsed() < Duration::from_millis(1000) {}
+    info!("Low");
+    led.set_low();
+
+    rtc.sleep_deep();
 }

@@ -34,6 +34,7 @@
         [ "esp:GND", "r2:2", "black", [ "h20", "v5" ] ],
         [ "rtc1:SDA", "esp:D4", "green", [ "h15", "v5" ] ],
         [ "rtc1:SCL", "esp:D5", "green", [  ] ],
+        [ "rtc1:SQW", "esp:D3", "green", [ "h15", "v5" ] ],
         [ "rtc1:GND", "esp:GND", "black", [ "h25", "v-140", "h175", "v-130" ] ],
         [ "rtc1:5V", "esp:5V", "red", [ "h20", "v-135", "h185", "v-130" ] ]
     ],
