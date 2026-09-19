@@ -10,11 +10,12 @@
 use esp_backtrace as _;
 use esp_hal::clock::CpuClock;
 use esp_hal::gpio::{Output, OutputConfig};
-use esp_hal::i2c::master::Config as I2CConfig;
+use esp_hal::i2c::master::{Config as I2CConfig};
 use esp_hal::{i2c, main};
 use esp_hal::time::{Duration, Instant};
 use log::info;
-use ds323x::{Ds323x, Rtcc, Timelike};
+use embedded_alarm_clock::rtc::RTC;
+use heapless::format;
 
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
@@ -55,18 +56,14 @@ fn main() -> ! {
     let i2c = i2c::master::I2c::new(peripherals.I2C0,I2CConfig::default()).unwrap()
                                                                                              .with_scl(i2c_scl)
                                                                                              .with_sda(i2c_sda);
-    let mut rtc=Ds323x::new_ds3231(i2c);
+    let mut rtc= RTC::new(i2c);
 
     loop {
         let delay_start = Instant::now();
         while delay_start.elapsed() < Duration::from_millis(500) {}
         info!("High");
         led.set_high();
-        match rtc.time(){
-            Ok(time) => info!("Current time {}:{}", time.hour(), time.minute()),
-            Err(e) => info!("RTC error: {:?}", e),
-        }
-        
+        info!("Current time {}", rtc.get_time_hh_mm().unwrap_or(format!("??:??").unwrap()));
         
         while delay_start.elapsed() < Duration::from_millis(1000) {}
         info!("Low");
