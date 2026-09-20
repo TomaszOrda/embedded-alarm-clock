@@ -16,10 +16,18 @@ use esp_hal::time::{Duration, Instant};
 use log::info;
 use embedded_alarm_clock::rtc::RTC;
 use heapless::format;
+use esp_hal::ram;
 
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
 esp_bootloader_esp_idf::esp_app_desc!();
+
+
+const ALARMS_MAX_LENGTH: usize = 16;
+#[ram(unstable(rtc_fast, persistent))]
+static mut ALARMS: [Alarm;ALARMS_MAX_LENGTH] = [Alarm::empty(); ALARMS_MAX_LENGTH];
+#[ram(unstable(rtc_fast, persistent))]
+static mut ALARMS_LENGTH: usize = 0;
 
 #[allow(
     clippy::large_stack_frames,
@@ -69,4 +77,46 @@ fn main() -> ! {
     led.set_low();
 
     rtc.sleep_deep();
+}
+#[derive(PartialEq, Copy, Clone)]
+#[repr(C)]
+struct Alarm{
+    pub weekday: u8,
+    pub hour: u8,
+    pub minute: u8
+}
+unsafe impl esp_hal::Persistable for Alarm {}
+impl Alarm{
+    pub const fn empty()->Self{
+        Self { weekday: 0, hour: 0, minute: 0 }
+    }
+}
+struct Schedule{
+}
+impl Schedule{
+    pub fn clear(){
+        unsafe {
+            ALARMS_LENGTH = 0
+        }
+    }
+    pub fn add_alarm(alarm: Alarm)->Option<()>{
+        unsafe{
+            if ALARMS_LENGTH == ALARMS_MAX_LENGTH{
+                return None
+            }
+            ALARMS[ALARMS_LENGTH] = alarm;
+            ALARMS_LENGTH = ALARMS_LENGTH + 1;
+            Some(())
+        }
+    }
+    pub fn is_alarm_time(alarm: &Alarm)->bool{
+        unsafe{
+            for index in 0..ALARMS_LENGTH{
+                if &ALARMS[index] == alarm{
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
 }
