@@ -25,7 +25,7 @@ esp_bootloader_esp_idf::esp_app_desc!();
 
 const ALARMS_MAX_LENGTH: usize = 16;
 #[ram(unstable(rtc_fast, persistent))]
-static mut ALARMS: [Alarm;ALARMS_MAX_LENGTH] = [Alarm::empty(); ALARMS_MAX_LENGTH];
+static mut ALARMS: [AlarmTime;ALARMS_MAX_LENGTH] = [AlarmTime::placeholder(); ALARMS_MAX_LENGTH];
 #[ram(unstable(rtc_fast, persistent))]
 static mut ALARMS_LENGTH: usize = 0;
 
@@ -78,28 +78,30 @@ fn main() -> ! {
 
     rtc.sleep_deep();
 }
+
+
 #[derive(PartialEq, Copy, Clone)]
 #[repr(C)]
-struct Alarm{
+struct AlarmTime{
     pub weekday: u8,
     pub hour: u8,
     pub minute: u8
 }
-unsafe impl esp_hal::Persistable for Alarm {}
-impl Alarm{
-    pub const fn empty()->Self{
+unsafe impl esp_hal::Persistable for AlarmTime {}
+impl AlarmTime{
+    pub const fn placeholder()->Self{
         Self { weekday: 0, hour: 0, minute: 0 }
     }
 }
-struct Schedule{
+struct AlarmTable{
 }
-impl Schedule{
+impl AlarmTable{
     pub fn clear(){
         unsafe {
             ALARMS_LENGTH = 0
         }
     }
-    pub fn add_alarm(alarm: Alarm)->Option<()>{
+    pub fn push_alarm(alarm: AlarmTime)->Option<()>{
         unsafe{
             if ALARMS_LENGTH == ALARMS_MAX_LENGTH{
                 return None
@@ -109,7 +111,7 @@ impl Schedule{
             Some(())
         }
     }
-    pub fn is_alarm_time(alarm: &Alarm)->bool{
+    pub fn contains(alarm: &AlarmTime)->bool{
         unsafe{
             for index in 0..ALARMS_LENGTH{
                 if &ALARMS[index] == alarm{
