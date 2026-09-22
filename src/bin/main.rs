@@ -16,10 +16,16 @@ use esp_hal::time::{Duration, Instant};
 use log::info;
 use embedded_alarm_clock::rtc::RTC;
 use heapless::format;
+use esp_hal::ram;
+use embedded_alarm_clock::alarm_table::{AlarmTable, AlarmTime};
 
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
 esp_bootloader_esp_idf::esp_app_desc!();
+
+
+#[ram(unstable(rtc_fast, persistent))]
+static mut ALARMS_TABLE: AlarmTable = AlarmTable::new();
 
 #[allow(
     clippy::large_stack_frames,
@@ -58,10 +64,15 @@ fn main() -> ! {
                                                                                              .with_sda(i2c_sda);
     let mut rtc: RTC = RTC::new(i2c, peripherals.LPWR, #[cfg(not(debug_assertions))] peripherals.GPIO5.into_pull_up_input().into());
 
+    alarm_table_apply_mut(|t| t.initialize());
+    alarm_table_apply_mut(|t| t.push_alarm(AlarmTime{weekday: 3, hour: 12, minute: 10}));
 
     info!("High");
     led.set_high();
     info!("Current time {}", rtc.get_time_hh_mm().unwrap_or(format!("??:??").unwrap()));
+    if alarm_table_apply(|t| t.contains(&AlarmTime { weekday: 3, hour: 12, minute: 10 })){
+        info!("Alarm sound!");    
+    }
 
     let delay_start = Instant::now();
     while delay_start.elapsed() < Duration::from_millis(1000) {}
@@ -69,4 +80,11 @@ fn main() -> ! {
     led.set_low();
 
     rtc.sleep_deep();
+}
+
+pub fn alarm_table_apply_mut<R>(func: impl FnOnce(&mut AlarmTable) -> R) -> R{
+    unsafe { func(&mut *(&raw mut ALARMS_TABLE)) }
+}
+pub fn alarm_table_apply<R>(func: impl FnOnce(&AlarmTable) -> R) -> R{
+    unsafe { func(& *(&raw const ALARMS_TABLE)) }
 }

@@ -1,16 +1,8 @@
-use esp_hal::ram;
-
-const ALARMS_MAX_LENGTH: usize = 16;
-#[ram(unstable(rtc_fast, persistent))]
-static mut ALARMS: [AlarmTime;ALARMS_MAX_LENGTH] = [AlarmTime::placeholder(); ALARMS_MAX_LENGTH];
-#[ram(unstable(rtc_fast, persistent))]
-static mut ALARMS_LENGTH: usize = ALARMS_MAX_LENGTH+1;
-#[ram(unstable(rtc_fast, persistent))]
-static mut ALARMS_CHECKSUM: u16 = 0;
-
+const ALARMS_MAX_LENGTH: u8 = 16;
 
 #[derive(PartialEq, Copy, Clone)]
 pub struct AlarmTime{
+    //Adjusting the values can introduce a padding and make the struct non esp_hal::Persistable
     pub weekday: u8,
     pub hour: u8,
     pub minute: u8
@@ -27,62 +19,60 @@ impl AlarmTime{
     }
 }
 pub struct AlarmTable{
+    //Adjusting the values can introduce a padding and make the struct non esp_hal::Persistable
+    table: [AlarmTime;ALARMS_MAX_LENGTH as usize],
+    table_length: u8,
+    checksum: u16
 }
+unsafe impl esp_hal::Persistable for AlarmTable {}
 impl AlarmTable{
-    pub fn initialize(){
-        if !AlarmTable::is_valid() || !AlarmTable::is_checksum_consistent(){
-            AlarmTable::clear();
+    pub const fn new() -> Self{
+        Self{
+            table: [AlarmTime::placeholder(); ALARMS_MAX_LENGTH as usize],
+            table_length: 0,
+            checksum: 0
         }
     }
-    fn is_valid()-> bool{
-        unsafe {
-            return ALARMS_LENGTH<=ALARMS_MAX_LENGTH && ALARMS[..ALARMS_LENGTH].iter().all(|alarm| alarm.is_valid())
+    pub fn initialize(&mut self){
+        if !self.is_valid() || !self.is_checksum_consistent(){
+            self.clear();
         }
     }
-    fn calculate_checksum() -> u16{
-        unsafe{
-            let mut bufor : [u8; 1+ ALARMS_MAX_LENGTH * 3] = [0_u8; 1+ALARMS_MAX_LENGTH * 3];
-            bufor[0] = ALARMS_LENGTH as u8;
-            let mut id = 1;
-            for alarm in ALARMS[0..ALARMS_LENGTH].iter(){
-                bufor[id] = alarm.weekday;
-                bufor[id+1] = alarm.hour;
-                bufor[id+2] = alarm.minute;
-                id = id +3
-            }
-            return crc::Crc::<u16>::new(&crc::CRC_16_IBM_SDLC).checksum(&bufor)
-        }
+    fn is_valid(&self)-> bool{
+        return self.table_length<=ALARMS_MAX_LENGTH && self.table[..self.table_length as usize].iter().all(|alarm| alarm.is_valid())
     }
-    fn is_checksum_consistent() -> bool{
-        unsafe{
-            ALARMS_CHECKSUM == AlarmTable::calculate_checksum()
+    fn calculate_checksum(&self) -> u16{
+        let mut bufor : [u8; 1+ ALARMS_MAX_LENGTH as usize * 3] = [0_u8; 1+ALARMS_MAX_LENGTH as usize * 3];
+        bufor[0] = self.table_length as u8;
+        let mut id = 1;
+        for alarm in self.table[..self.table_length as usize].iter(){
+            bufor[id] = alarm.weekday;
+            bufor[id+1] = alarm.hour;
+            bufor[id+2] = alarm.minute;
+            id = id +3
         }
+        return crc::Crc::<u16>::new(&crc::CRC_16_IBM_SDLC).checksum(&bufor)
     }
-    fn recalculate_checksum(){
-        unsafe{
-            ALARMS_CHECKSUM = AlarmTable::calculate_checksum();
-        }
+    fn is_checksum_consistent(&self) -> bool{
+        self.checksum == self.calculate_checksum()
     }
-    fn clear(){
-        unsafe {
-            ALARMS_LENGTH = 0;
-            AlarmTable::recalculate_checksum();
-        }
+    fn recalculate_checksum(&mut self){
+        self.checksum = self.calculate_checksum();
     }
-    pub fn push_alarm(alarm: AlarmTime)->Option<()>{
-        unsafe{
-            if ALARMS_LENGTH == ALARMS_MAX_LENGTH{
-                return None
-            }
-            ALARMS[ALARMS_LENGTH] = alarm;
-            ALARMS_LENGTH = ALARMS_LENGTH + 1;
-            AlarmTable::recalculate_checksum();
-            Some(())
-        }
+    fn clear(&mut self){
+        self.table_length = 0;
+        self.recalculate_checksum();
     }
-    pub fn contains(alarm: &AlarmTime)->bool{
-        unsafe{
-            return ALARMS[..ALARMS_LENGTH].contains(alarm)
+    pub fn push_alarm(&mut self, alarm: AlarmTime)->Option<()>{
+        if self.table_length == ALARMS_MAX_LENGTH{
+            return None
         }
+        self.table[self.table_length as usize] = alarm;
+        self.table_length = self.table_length + 1;
+        self.recalculate_checksum();
+        Some(())
+    }
+    pub fn contains(&self, alarm: &AlarmTime)->bool{
+        return self.table[..self.table_length as usize].contains(alarm)
     }
 }
