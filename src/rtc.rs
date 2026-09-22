@@ -1,5 +1,5 @@
 
-use ds323x::{DayAlarm1, Ds323x, NaiveTime, Rtcc, Timelike};
+use ds323x::{DateTimeAccess, DayAlarm1, Ds323x, NaiveDateTime, NaiveTime, Rtcc, Timelike};
 use heapless::{String, format};
 use esp_hal::{peripherals::LPWR, rtc_cntl::Rtc};
 #[cfg(not(debug_assertions))]
@@ -26,6 +26,12 @@ impl RTC{
     }
     pub fn get_time(&mut self) -> Option<NaiveTime>{
         return match self.rtc.time(){
+            Ok(time) => Some(time),
+            Err(_e) => None
+        }
+    }
+    pub fn get_date_time(&mut self) -> Option<NaiveDateTime>{
+        return match self.rtc.datetime(){
             Ok(time) => Some(time),
             Err(_e) => None
         }

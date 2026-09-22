@@ -1,6 +1,8 @@
+use ds323x::{Datelike, NaiveDateTime, Timelike};
 const ALARMS_MAX_LENGTH: u8 = 16;
 
-#[derive(PartialEq, Copy, Clone)]
+
+#[derive(Default, PartialEq, Copy, Clone)]
 pub struct AlarmTime{
     //Adjusting the values can introduce a padding and make the struct non esp_hal::Persistable
     pub weekday: u8,
@@ -9,18 +11,40 @@ pub struct AlarmTime{
 }
 unsafe impl esp_hal::Persistable for AlarmTime {}
 impl AlarmTime{
-    pub const fn placeholder()->Self{
-        Self { weekday: 0, hour: 0, minute: 0 }
-    }
     pub fn is_valid(&self)->bool{
-        return (1_u8..=7_u8).contains(&self.weekday) 
+        return (0_u8..7_u8).contains(&self.weekday) 
             && (0_u8..60_u8).contains(&self.minute) 
             && (0_u8..24_u8).contains(&self.hour)
+    }
+    pub const fn zeroed() -> Self{
+        Self{
+            weekday: 0,
+            hour: 0,
+            minute: 0
+        }
+    }
+}
+impl From<NaiveDateTime> for AlarmTime {
+    fn from(time: NaiveDateTime) -> Self {
+        Self {
+            weekday: time.weekday() as u8,
+            hour: time.hour() as u8,
+            minute: time.minute() as u8,
+        }
+    }
+}
+impl From<&NaiveDateTime> for AlarmTime {
+    fn from(time: &NaiveDateTime) -> Self {
+        Self {
+            weekday: time.weekday() as u8,
+            hour: time.hour() as u8,
+            minute: time.minute() as u8,
+        }
     }
 }
 pub struct AlarmTable{
     //Adjusting the values can introduce a padding and make the struct non esp_hal::Persistable
-    table: [AlarmTime;ALARMS_MAX_LENGTH as usize],
+    pub table: [AlarmTime;ALARMS_MAX_LENGTH as usize],
     table_length: u8,
     checksum: u16
 }
@@ -28,7 +52,7 @@ unsafe impl esp_hal::Persistable for AlarmTable {}
 impl AlarmTable{
     pub const fn new() -> Self{
         Self{
-            table: [AlarmTime::placeholder(); ALARMS_MAX_LENGTH as usize],
+            table: [AlarmTime::zeroed(); ALARMS_MAX_LENGTH as usize],
             table_length: 0,
             checksum: 0
         }
@@ -74,5 +98,8 @@ impl AlarmTable{
     }
     pub fn contains(&self, alarm: &AlarmTime)->bool{
         return self.table[..self.table_length as usize].contains(alarm)
+    }
+    pub fn contains_date_time(&self, alarm: &NaiveDateTime)->bool{
+        return self.table[..self.table_length as usize].contains(&alarm.into())
     }
 }
