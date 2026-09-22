@@ -1,6 +1,6 @@
 use ds323x::{Datelike, NaiveDateTime, Timelike};
 const ALARMS_MAX_LENGTH: u8 = 16;
-
+const CRC16: crc::Crc<u16> = crc::Crc::<u16>::new(&crc::CRC_16_IBM_SDLC);
 
 #[derive(Default, PartialEq, Copy, Clone)]
 pub struct AlarmTime{
@@ -66,16 +66,11 @@ impl AlarmTable{
         return self.table_length<=ALARMS_MAX_LENGTH && self.table[..self.table_length as usize].iter().all(|alarm| alarm.is_valid())
     }
     fn calculate_checksum(&self) -> u16{
-        let mut bufor : [u8; 1+ ALARMS_MAX_LENGTH as usize * 3] = [0_u8; 1+ALARMS_MAX_LENGTH as usize * 3];
-        bufor[0] = self.table_length as u8;
-        let mut id = 1;
-        for alarm in self.table[..self.table_length as usize].iter(){
-            bufor[id] = alarm.weekday;
-            bufor[id+1] = alarm.hour;
-            bufor[id+2] = alarm.minute;
-            id = id +3
-        }
-        return crc::Crc::<u16>::new(&crc::CRC_16_IBM_SDLC).checksum(&bufor)
+        let mut digest = CRC16.digest();
+        digest.update(&[self.table_length]);
+        self.table.iter().for_each(
+            |alarm| digest.update(&[alarm.weekday, alarm.hour, alarm.minute]) );
+        digest.finalize()
     }
     fn is_checksum_consistent(&self) -> bool{
         self.checksum == self.calculate_checksum()
