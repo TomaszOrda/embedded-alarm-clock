@@ -113,12 +113,7 @@ impl AlarmTable{
     }
     pub fn contains(alarm: &AlarmTime)->bool{
         unsafe{
-            for index in 0..ALARMS_LENGTH{
-                if &ALARMS[index] == alarm{
-                    return true;
-                }
-            }
-            return false;
+            return ALARMS[..ALARMS_LENGTH].contains(alarm)
         }
     }
 }
