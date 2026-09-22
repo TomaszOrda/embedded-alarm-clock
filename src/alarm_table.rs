@@ -57,10 +57,8 @@ impl AlarmTable{
             checksum: 0
         }
     }
-    pub fn initialize(&mut self){
-        if !self.is_valid() || !self.is_checksum_consistent(){
-            self.clear();
-        }
+    pub fn is_consistent(&self)->bool{
+        self.is_valid() && self.is_checksum_consistent()
     }
     fn is_valid(&self)-> bool{
         return self.table_length<=ALARMS_MAX_LENGTH && self.table[..self.table_length as usize].iter().all(|alarm| alarm.is_valid())
@@ -78,7 +76,7 @@ impl AlarmTable{
     fn recalculate_checksum(&mut self){
         self.checksum = self.calculate_checksum();
     }
-    fn clear(&mut self){
+    pub fn clear(&mut self){
         self.table_length = 0;
         self.recalculate_checksum();
     }

@@ -64,8 +64,13 @@ fn main() -> ! {
                                                                                              .with_sda(i2c_sda);
     let mut rtc: RTC = RTC::new(i2c, peripherals.LPWR, #[cfg(not(debug_assertions))] peripherals.GPIO5.into_pull_up_input().into());
 
-    alarm_table_apply_mut(|t| t.initialize());
-    alarm_table_apply_mut(|t| t.push_alarm(AlarmTime{weekday: 1, hour: 17, minute: 30}));
+    if alarm_table_apply(|t| !t.is_consistent()) {
+        alarm_table_apply_mut(|t| 
+            {
+                t.clear();
+                t.push_alarm(AlarmTime{weekday: 1, hour: 18, minute: 10});
+            });
+    }
 
     info!("High");
     led.set_high();
