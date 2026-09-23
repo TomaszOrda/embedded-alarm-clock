@@ -10,9 +10,10 @@
 use esp_backtrace as _;
 use esp_hal::clock::CpuClock;
 use esp_hal::gpio::{Output, OutputConfig};
-use esp_hal::main;
 use esp_hal::time::{Duration, Instant};
 use log::info;
+use embassy_executor::Spawner;
+use embassy_time::Timer;
 
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
@@ -22,8 +23,8 @@ esp_bootloader_esp_idf::esp_app_desc!();
     clippy::large_stack_frames,
     reason = "it's not unusual to allocate larger buffers etc. in main"
 )]
-#[main]
-fn main() -> ! {
+#[esp_rtos::main]
+async fn main(_spawner: Spawner) -> ! {
     // generator version: 1.3.0
     // generator parameters: --chip esp32c3 -o esp32c3-mini-1 -o log -o esp-backtrace -o wokwi -o vscode -o stable-x86_64-pc-windows-msvc
 
@@ -32,6 +33,9 @@ fn main() -> ! {
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let peripherals = esp_hal::init(config);
 
+    let timg0 = esp_hal::timer::timg::TimerGroup::new(peripherals.TIMG0);
+    let software_interrupt = esp_hal::interrupt::software::SoftwareInterruptControl::new(peripherals.SW_INTERRUPT);
+    esp_rtos::start(timg0.timer0, software_interrupt.software_interrupt0);
     // The following pins are used to bootstrap the chip. They are available
     // for use, but check the datasheet of the module for more information on them.
     // - GPIO2
