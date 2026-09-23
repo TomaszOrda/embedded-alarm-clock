@@ -47,15 +47,23 @@ fn main() -> ! {
     let _ = peripherals.GPIO17;
 
     let mut led = Output::new(peripherals.GPIO2,esp_hal::gpio::Level::Low, OutputConfig::default());
+    let mut loop_index = 0;
+    let mut buzzer: Output = Output::new(peripherals.GPIO3,esp_hal::gpio::Level::Low, OutputConfig::default());
     
     loop {
         let delay_start = Instant::now();
         while delay_start.elapsed() < Duration::from_millis(500) {}
         info!("High");
         led.set_high();
+        if loop_index % 10 == 0{
+            buzzer.set_high();
+        }
         while delay_start.elapsed() < Duration::from_millis(1000) {}
         info!("Low");
         led.set_low();
+        buzzer.set_low();
+        
+        loop_index = loop_index + 1;
     }
 
 }
