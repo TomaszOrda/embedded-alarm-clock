@@ -25,12 +25,45 @@
             "top": -35,
             "left": -5,
             "attrs": { "value": "1000" }
+        },
+        {   "type": "wokwi-pushbutton",
+            "id": "btn", 
+            "top": 130, 
+            "left": 4 
+        },
+        {   "type": "wokwi-led", 
+            "id": "led2", 
+            "top": 110, 
+            "left": 150, 
+            "attrs": { "color": "red", "flip": "true" }, 
+            "rotate": 0 
+        },
+        {   "type": "wokwi-resistor",
+            "id": "r3",
+            "top": 156,
+            "left": 90,
+            "attrs": { "value": "1000" }
+        },
+        {   "type": "wokwi-resistor",
+            "id": "r4",
+            "top": 100,
+            "left": 50,
+            "attrs": { "value": "10000" },
+            "rotate": 270
         }
     ],
     "connections": [
         [ "led1:A", "esp:D0", "green", [ "v67", "h-95" ] ],
         [ "led1:C", "r2:1", "black", [ "v0" ] ],
-        [ "esp:GND", "r2:2", "black", [ "h20", "v5" ] ]
+        [ "esp:GND", "r2:2", "black", [ "h20", "v5" ] ],
+        [ "esp:GND", "btn:1.r", "black", [ "h5" ] ],
+        [ "btn:2.l", "esp:D2", "green", ["h-10", "v10"] ],
+        [ "btn:2.r", "r3:1", "green", [ ] ],
+        [ "r3:2", "led2:C", "green", [ ] ],
+        [ "esp:3V3", "r4:2", "red", [ "h17", "v10"] ],
+        [ "r4:1", "btn:2.r", "green", [ "v10"] ],
+        [ "led2:A", "esp:3V3", "red", [ "h-77", "v10"] ]
+        
     ],
     "serialMonitor": {
         "display": "terminal",

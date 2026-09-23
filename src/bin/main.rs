@@ -9,7 +9,7 @@
 
 use esp_backtrace as _;
 use esp_hal::clock::CpuClock;
-use esp_hal::gpio::{Output, OutputConfig};
+use esp_hal::gpio::{Input, InputConfig, Output, OutputConfig};
 use esp_hal::main;
 use esp_hal::time::{Duration, Instant};
 use log::info;
@@ -47,15 +47,21 @@ fn main() -> ! {
     let _ = peripherals.GPIO17;
 
     let mut led = Output::new(peripherals.GPIO2,esp_hal::gpio::Level::Low, OutputConfig::default());
-    
+    let button: Input<'_> = Input::new(peripherals.GPIO4, InputConfig::default().with_pull(esp_hal::gpio::Pull::None));
     loop {
         let delay_start = Instant::now();
         while delay_start.elapsed() < Duration::from_millis(500) {}
+        if button.is_low(){
+            info!("pressed")
+        }
         info!("High");
         led.set_high();
         while delay_start.elapsed() < Duration::from_millis(1000) {}
         info!("Low");
         led.set_low();
+        if button.is_low(){
+            info!("pressed")
+        }
     }
 
 }
