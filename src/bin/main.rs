@@ -13,7 +13,7 @@ use esp_hal::gpio::{Output, OutputConfig};
 use esp_hal::time::{Duration, Instant};
 use log::info;
 use embassy_executor::Spawner;
-use embassy_time::Timer;
+use embedded_alarm_clock::buzzer::Buzzer;
 
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
@@ -71,23 +71,3 @@ async fn main(_spawner: Spawner) -> ! {
 
 }
 
-struct Buzzer{
-    pin: Output<'static>
-}
-impl Buzzer{
-    fn new(pin: Output<'static>) -> Self{
-        Buzzer{
-            pin,
-        }
-    }
-    async fn buzz(&mut self, duration_seconds: u8, frequency: f32){
-        let half_period = embassy_time::Duration::from_micros((1_000_000.0 / frequency / 2.0) as u64);
-        let beeping_end = Instant::now() + Duration::from_secs(duration_seconds as u64);
-        while Instant::now() < beeping_end {
-            self.pin.set_high();
-            Timer::after(half_period).await;
-            self.pin.set_low();
-            Timer::after(half_period).await;
-        }
-    }
-}
