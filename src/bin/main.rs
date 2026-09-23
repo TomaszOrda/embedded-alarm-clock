@@ -7,10 +7,10 @@
 )]
 #![deny(clippy::large_stack_frames)]
 
+use embassy_time::{Timer, Duration};
 use esp_backtrace as _;
 use esp_hal::clock::CpuClock;
 use esp_hal::gpio::{Output, OutputConfig};
-use esp_hal::time::{Duration, Instant};
 use log::info;
 use embassy_executor::Spawner;
 use embedded_alarm_clock::buzzer::Buzzer;
@@ -55,14 +55,13 @@ async fn main(_spawner: Spawner) -> ! {
     let mut buzzer: Buzzer = Buzzer::new(Output::new(peripherals.GPIO3,esp_hal::gpio::Level::Low, OutputConfig::default()));
     
     loop {
-        let delay_start = Instant::now();
-        while delay_start.elapsed() < Duration::from_millis(500) {}
+        Timer::after(Duration::from_millis(500)).await;
         info!("High");
         led.set_high();
         if loop_index % 10 == 0{
             buzzer.buzz(3, 0.5).await;
         }
-        while delay_start.elapsed() < Duration::from_millis(1000) {}
+        Timer::after(Duration::from_millis(1000)).await;
         info!("Low");
         led.set_low();
         
