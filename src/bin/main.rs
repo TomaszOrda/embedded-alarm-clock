@@ -52,7 +52,7 @@ async fn main(_spawner: Spawner) -> ! {
 
     let mut led = Output::new(peripherals.GPIO2,esp_hal::gpio::Level::Low, OutputConfig::default());
     let mut loop_index = 0;
-    let mut buzzer: Output = Output::new(peripherals.GPIO3,esp_hal::gpio::Level::Low, OutputConfig::default());
+    let mut buzzer: Buzzer = Buzzer::new(Output::new(peripherals.GPIO3,esp_hal::gpio::Level::Low, OutputConfig::default()));
     
     loop {
         let delay_start = Instant::now();
@@ -60,14 +60,34 @@ async fn main(_spawner: Spawner) -> ! {
         info!("High");
         led.set_high();
         if loop_index % 10 == 0{
-            buzzer.set_high();
+            buzzer.buzz(3, 0.5).await;
         }
         while delay_start.elapsed() < Duration::from_millis(1000) {}
         info!("Low");
         led.set_low();
-        buzzer.set_low();
         
         loop_index = loop_index + 1;
     }
 
+}
+
+struct Buzzer{
+    pin: Output<'static>
+}
+impl Buzzer{
+    fn new(pin: Output<'static>) -> Self{
+        Buzzer{
+            pin,
+        }
+    }
+    async fn buzz(&mut self, duration_seconds: u8, frequency: f32){
+        let half_period = embassy_time::Duration::from_micros((1_000_000.0 / frequency / 2.0) as u64);
+        let beeping_end = Instant::now() + Duration::from_secs(duration_seconds as u64);
+        while Instant::now() < beeping_end {
+            self.pin.set_high();
+            Timer::after(half_period).await;
+            self.pin.set_low();
+            Timer::after(half_period).await;
+        }
+    }
 }
