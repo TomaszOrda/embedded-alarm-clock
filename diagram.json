@@ -12,25 +12,19 @@
                 "flashSize": "16"
             }
         },
-        {
-            "type": "wokwi-led",
-            "id": "led1",
-            "top": -90,
-            "left": -80,
-            "attrs": { "color": "limegreen", "flip": "true" }
-        },
-        {
-            "type": "wokwi-resistor",
-            "id": "r2",
-            "top": -35,
-            "left": -5,
-            "attrs": { "value": "1000" }
-        }
+        { "type": "board-epaper-2in9", "id": "epd1", "top": -77, "left": 120, "attrs": {} }
     ],
     "connections": [
-        [ "led1:A", "esp:D0", "green", [ "v67", "h-95" ] ],
-        [ "led1:C", "r2:1", "black", [ "v0" ] ],
-        [ "esp:GND", "r2:2", "black", [ "h20", "v5" ] ]
+        [ "esp:TX", "$serialMonitor:RX", "", [] ],
+        [ "esp:RX", "$serialMonitor:TX", "", [] ],
+        [ "epd1:VCC", "esp:3V3", "red", [ "h-15", "v5" ] ],
+        [ "epd1:GND", "esp:GND", "black", [ ] ],
+        [ "epd1:DIN", "esp:D10", "green", [ "h-20", "v100" ] ],
+        [ "epd1:CLK", "esp:D8", "green", [ "h-25", "v100" ] ],
+        [ "epd1:CS", "esp:D9", "green", [ "h-30", "v100" ] ],
+        [ "epd1:DC", "esp:D1", "green", [ "h-140", "v100" ] ],
+        [ "epd1:RST", "esp:D2", "green", [ "h-145", "v100" ] ],
+        [ "epd1:BUSY", "esp:D6", "green", [ "h-150", "v100" ] ]
     ],
     "serialMonitor": {
         "display": "terminal",
