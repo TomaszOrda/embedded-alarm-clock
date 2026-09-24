@@ -12,11 +12,25 @@
                 "flashSize": "16"
             }
         },
-        { "type": "board-epaper-2in9", "id": "epd1", "top": -77, "left": 120, "attrs": {} }
+        {   "type": "wokwi-ds1307", 
+            "id": "rtc1", "top": 26.5, 
+            "left": -200, 
+            "attrs": {}, 
+            "rotate": 180 
+        },
+        {   "type": "board-epaper-2in9", 
+            "id": "epd1", 
+            "top": -77, 
+            "left": 120, 
+            "attrs": {} 
+        }
     ],
     "connections": [
-        [ "esp:TX", "$serialMonitor:RX", "", [] ],
-        [ "esp:RX", "$serialMonitor:TX", "", [] ],
+        [ "rtc1:SDA", "esp:D4", "green", [ "h15", "v5" ] ],
+        [ "rtc1:SCL", "esp:D5", "green", [  ] ],
+        [ "rtc1:SQW", "esp:D3", "green", [ "h15", "v5" ] ],
+        [ "rtc1:GND", "esp:GND", "black", [ "h25", "v-140", "h175", "v-130" ] ],
+        [ "rtc1:5V", "esp:5V", "red", [ "h20", "v-135", "h185", "v-130" ] ],
         [ "epd1:VCC", "esp:3V3", "red", [ "h-15", "v5" ] ],
         [ "epd1:GND", "esp:GND", "black", [ ] ],
         [ "epd1:DIN", "esp:D10", "green", [ "h-20", "v100" ] ],
