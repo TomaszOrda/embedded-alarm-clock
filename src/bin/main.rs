@@ -8,12 +8,12 @@
 #![deny(clippy::large_stack_frames)]
 
 
-use epd_waveshare::prelude::*;
 use esp_backtrace as _;
 use esp_hal::clock::CpuClock;
 use esp_hal::i2c::master::{Config as I2CConfig};
+use esp_hal::rtc_cntl::wakeup_cause;
 use esp_hal::{i2c, main};
-use esp_hal::time::{Duration, Instant, Rate};
+use esp_hal::time::Rate;
 use esp_hal::gpio::{Input, InputConfig, Level::{self}, Output, OutputConfig};
 use esp_hal::spi::{Mode, master::{Config, Spi}};
 use log::info;
@@ -69,27 +69,25 @@ fn main() -> ! {
     let rst = Output::new(peripherals.GPIO4, Level::High, OutputConfig::default());
     let busy = Input::new(peripherals.GPIO21, InputConfig::default());
 
+    let wake_from_sleep: bool = match wakeup_cause(){
+        esp_hal::system::SleepSource::Timer => true,
+        esp_hal::system::SleepSource::Ext1 => true,
+        _ => false
+    };
+
     let spi = Spi::new(peripherals.SPI2, 
                        Config::default().with_mode(Mode::_0)
                                         .with_frequency(Rate::from_mhz(4)))
                                         .unwrap()
                                         .with_sck(spi_sck)
                                         .with_mosi(spi_mosi);
-    let mut EPaper_display = EPaperDisplay::new(spi, cs, busy, dc, rst);
+    let mut EPaper_display = EPaperDisplay::new(spi, cs, busy, dc, rst, wake_from_sleep);
     EPaper_display.wait_till_idle().unwrap();
     info!("Display initialized");
 
-    info!("High");
     let current_time_string = rtc.get_time_hh_mm().unwrap_or(format!("??:??").unwrap());
     info!("Current time {}", current_time_string);
     EPaper_display.draw_text(&current_time_string);
-    EPaper_display.flush();
-    EPaper_display.wait_till_idle().unwrap();
-
-    let delay_start = Instant::now();
-    while delay_start.elapsed() < Duration::from_millis(5000) {}
-    info!("Low");
-    EPaper_display.draw_circle(Color::White);
     EPaper_display.flush();
     EPaper_display.wait_till_idle().unwrap();
 
