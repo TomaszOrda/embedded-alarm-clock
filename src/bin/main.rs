@@ -7,7 +7,7 @@
 )]
 #![deny(clippy::large_stack_frames)]
 
-use esp32c3_template::epaper::EPaperDisplay;
+use embedded_alarm_clock::epaper::EPaperDisplay;
 
 use epd_waveshare::prelude::*;
 use esp_backtrace as _;
