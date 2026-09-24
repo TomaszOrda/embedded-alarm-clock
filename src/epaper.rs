@@ -1,9 +1,9 @@
 use embedded_graphics::draw_target::DrawTarget;
 use embedded_graphics::geometry::Point;
-use u8g2_fonts::U8g2TextStyle;
 use embedded_graphics::primitives::{Circle, PrimitiveStyle};
 use embedded_graphics::prelude::*;
-use embedded_graphics::text::Text;
+use u8g2_fonts::fonts::u8g2_font_logisoso92_tn;
+use u8g2_fonts::{FontRenderer};
 use embedded_hal_bus::spi::ExclusiveDevice;
 use epd_waveshare::{epd2in9_v2::*, prelude::*};
 use esp_backtrace as _;
@@ -54,12 +54,15 @@ impl EPaperDisplay
         .unwrap();
     }
     pub fn draw_text(&mut self, text:&str){
-        let font: u8g2_fonts::fonts::u8g2_font_logisoso92_tn = u8g2_fonts::fonts::u8g2_font_logisoso92_tn;
-        let position_bottom_left: Point = Point::new((self.epd2in9.height() as i32 -53*5)/2, (self.epd2in9.width() as i32 +111)/2);
-        let style: U8g2TextStyle<Color> =  U8g2TextStyle::new(font, Color::Black);
-        Text::new(text, position_bottom_left, style)
-            .draw(&mut self.display)
-            .unwrap();
+        let renderer : FontRenderer = FontRenderer::new::<u8g2_font_logisoso92_tn>();
+        renderer.render_aligned(
+            text,
+            self.display.bounding_box().center(),
+            u8g2_fonts::types::VerticalPosition::Center,
+            u8g2_fonts::types::HorizontalAlignment::Center,
+            u8g2_fonts::types::FontColor::Transparent(Color::Black),
+            &mut self.display
+        ).unwrap();
     }
     pub fn flush(&mut self){
         if self.partial_flush_limit_reached(){
