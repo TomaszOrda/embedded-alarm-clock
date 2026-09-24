@@ -27,6 +27,8 @@ heapless = "0.9.3"
 epd-waveshare = "0.6.0"
 embedded-graphics = "0.8.2"
 embedded-hal-bus = "0.3.0"
+embassy-time = "0.5.1"
+u8g2-fonts = { version = "0.8", features = ["embedded_graphics_textstyle"] }
 
 
 # For fine tuning these settings, please refer to https://doc.rust-lang.org/cargo/reference/profiles.html

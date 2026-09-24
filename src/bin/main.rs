@@ -79,11 +79,10 @@ fn main() -> ! {
     EPaper_display.wait_till_idle().unwrap();
     info!("Display initialized");
 
-    let delay_start = Instant::now();
-    while delay_start.elapsed() < Duration::from_millis(5000) {}
     info!("High");
-    info!("Current time {}", rtc.get_time_hh_mm().unwrap_or(format!("??:??").unwrap()));
-    EPaper_display.draw_circle(Color::Black);
+    let current_time_string = rtc.get_time_hh_mm().unwrap_or(format!("??:??").unwrap());
+    info!("Current time {}", current_time_string);
+    EPaper_display.draw_text(&current_time_string);
     EPaper_display.flush();
     EPaper_display.wait_till_idle().unwrap();
 
