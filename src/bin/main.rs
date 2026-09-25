@@ -61,17 +61,11 @@ async fn main(_spawner: Spawner) -> ! {
         info!("High");
         led.set_high();
         if loop_index % 10 == 0{
-            buzzer.buzz(3, 0.5).await;
-        }
-        if button.is_low(){
-            info!("pressed")
+            buzzer.buzz(10, 0.5, &button).await;
         }
         Timer::after(Duration::from_millis(1000)).await;
         info!("Low");
         led.set_low();
-        if button.is_low(){
-            info!("pressed")
-        }
         loop_index = loop_index + 1;
     }
 
