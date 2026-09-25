@@ -12,19 +12,11 @@
                 "flashSize": "16"
             }
         },
-        {
-            "type": "wokwi-led",
-            "id": "led1",
-            "top": -90,
-            "left": -80,
-            "attrs": { "color": "limegreen", "flip": "true" }
-        },
-        {
-            "type": "wokwi-resistor",
-            "id": "r2",
-            "top": -35,
-            "left": -5,
-            "attrs": { "value": "1000" }
+        {   "type": "wokwi-ds1307", 
+            "id": "rtc1", "top": 26.5, 
+            "left": -200, 
+            "attrs": {}, 
+            "rotate": 180 
         },
         {   "type": "wokwi-pushbutton",
             "id": "btn", 
@@ -47,30 +39,51 @@
         {   "type": "wokwi-resistor",
             "id": "r4",
             "top": 100,
-            "left": 50,
+            "left": 55,
             "attrs": { "value": "10000" },
             "rotate": 270
         },
         {   "type": "wokwi-buzzer",
             "id": "buzz",
             "top": -180,
-            "left": -45,
+            "left": -57,
             "attrs": { "mode": "smooth", "volume": "1000" }
+        },
+        {   "type": "board-epaper-2in9", 
+            "id": "epd1", 
+            "top": -77, 
+            "left": 120, 
+            "attrs": {} 
         }
     ],
     "connections": [
-        [ "led1:A", "esp:D0", "green", [ "v67", "h-95" ] ],
-        [ "led1:C", "r2:1", "black", [ "v0" ] ],
-        [ "esp:GND", "r2:2", "black", [ "h20", "v5" ] ],
-        [ "esp:GND", "btn:1.r", "black", [ "h5" ] ],
-        [ "btn:2.l", "esp:D2", "green", ["h-10", "v10"] ],
+        [ "btn:1.r", "esp:GND", "black", [ "h5", "v10" ] ],
+        [ "btn:2.l", "esp:D7", "green", ["h-10", "v-40", "h77", "v-10"] ],
         [ "btn:2.r", "r3:1", "green", [ ] ],
+        [ "r4:1", "btn:2.r", "green", [ "v10" ] ],
+
+        [ "r4:2", "esp:3V3", "red", ["v10"] ],
+        
         [ "r3:2", "led2:C", "green", [ ] ],
-        [ "esp:3V3", "r4:2", "red", [ "h17", "v10"] ],
-        [ "r4:1", "btn:2.r", "green", [ "v10"] ],
-        [ "led2:A", "esp:3V3", "red", [ "h-77", "v10"] ],
-        [ "buzz:2", "esp:D1", "red", [ "v10"] ],
-        [ "buzz:1", "esp:GND", "black", [ "v5", "h92", "v100"] ]
+        [ "led2:A", "esp:3V3", "red", [ "h-72", "v10"] ],
+        
+        [ "buzz:2", "esp:D2", "green", [ "v10"] ],
+        [ "buzz:1", "esp:GND", "black", [ "v40", "h107", "v100"] ],
+        
+        [ "rtc1:SDA", "esp:D4", "green", [ "h15", "v5" ] ],
+        [ "rtc1:SCL", "esp:D5", "green", [  ] ],
+        [ "rtc1:SQW", "esp:D3", "green", [ "h15", "v5" ] ],
+        [ "rtc1:GND", "esp:GND", "black", [ "h25", "v-142", "h170", "v-130" ] ],
+        [ "rtc1:5V", "esp:5V", "red", [ "h20", "v-137", "h163", "v-130" ] ],
+        
+        [ "epd1:VCC", "esp:3V3", "red", [ "h-15", "v5" ] ],
+        [ "epd1:GND", "esp:GND", "black", [ ] ],
+        [ "epd1:DIN", "esp:D10", "green", [ "h-20", "v100" ] ],
+        [ "epd1:CLK", "esp:D8", "green", [ "h-25", "v100" ] ],
+        [ "epd1:CS", "esp:D9", "green", [ "h-30", "v100" ] ],
+        [ "epd1:DC", "esp:D6", "green", [ "h-160", "v100" ] ],
+        [ "epd1:RST", "esp:D0", "green", [ "h-145", "v100" ] ],
+        [ "epd1:BUSY", "esp:D1", "green", [ "h-150", "v100" ] ]
     ],
     "serialMonitor": {
         "display": "terminal",
