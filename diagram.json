@@ -50,6 +50,12 @@
             "left": 50,
             "attrs": { "value": "10000" },
             "rotate": 270
+        },
+        {   "type": "wokwi-buzzer",
+            "id": "buzz",
+            "top": -180,
+            "left": -45,
+            "attrs": { "mode": "smooth", "volume": "1000" }
         }
     ],
     "connections": [
@@ -62,8 +68,9 @@
         [ "r3:2", "led2:C", "green", [ ] ],
         [ "esp:3V3", "r4:2", "red", [ "h17", "v10"] ],
         [ "r4:1", "btn:2.r", "green", [ "v10"] ],
-        [ "led2:A", "esp:3V3", "red", [ "h-77", "v10"] ]
-        
+        [ "led2:A", "esp:3V3", "red", [ "h-77", "v10"] ],
+        [ "buzz:2", "esp:D1", "red", [ "v10"] ],
+        [ "buzz:1", "esp:GND", "black", [ "v5", "h92", "v100"] ]
     ],
     "serialMonitor": {
         "display": "terminal",
