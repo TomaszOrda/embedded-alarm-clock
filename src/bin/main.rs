@@ -51,7 +51,7 @@ async fn main(_spawner: Spawner) -> ! {
     let _ = peripherals.GPIO17;
 
     let mut led = Output::new(peripherals.GPIO2,esp_hal::gpio::Level::Low, OutputConfig::default());
-    let button: Input<'_> = Input::new(peripherals.GPIO4, InputConfig::default().with_pull(esp_hal::gpio::Pull::None));
+    let mut button: Input<'_> = Input::new(peripherals.GPIO4, InputConfig::default().with_pull(esp_hal::gpio::Pull::None));
     
     let mut buzzer: Buzzer = Buzzer::new(Output::new(peripherals.GPIO3,esp_hal::gpio::Level::Low, OutputConfig::default()));
     
@@ -61,7 +61,7 @@ async fn main(_spawner: Spawner) -> ! {
         info!("High");
         led.set_high();
         if loop_index % 10 == 0{
-            buzzer.buzz(10, 0.5, &button).await;
+            buzzer.buzz(10, 0.5, &mut button).await;
         }
         Timer::after(Duration::from_millis(1000)).await;
         info!("Low");
