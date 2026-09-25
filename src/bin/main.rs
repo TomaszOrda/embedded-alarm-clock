@@ -50,24 +50,37 @@ async fn main(_spawner: Spawner) -> ! {
     let _ = peripherals.GPIO16;
     let _ = peripherals.GPIO17;
 
-    let mut led = Output::new(peripherals.GPIO2,esp_hal::gpio::Level::Low, OutputConfig::default());
-    let mut button: Input<'_> = Input::new(peripherals.GPIO4, InputConfig::default().with_pull(esp_hal::gpio::Pull::None));
+    let led = Output::new(peripherals.GPIO2,esp_hal::gpio::Level::Low, OutputConfig::default());
+    let button: Input<'_> = Input::new(peripherals.GPIO4, InputConfig::default().with_pull(esp_hal::gpio::Pull::None));
     
-    let mut buzzer: Buzzer = Buzzer::new(Output::new(peripherals.GPIO3,esp_hal::gpio::Level::Low, OutputConfig::default()));
-    
-    let mut loop_index = 0;
-    loop {
-        Timer::after(Duration::from_millis(1000)).await;
-        info!("High");
-        led.set_high();
-        if loop_index % 10 == 0{
-            buzzer.buzz(10, 0.5, &mut button).await;
-        }
-        Timer::after(Duration::from_millis(1000)).await;
-        info!("Low");
-        led.set_low();
-        loop_index = loop_index + 1;
-    }
+    let buzzer: Buzzer = Buzzer::new(Output::new(peripherals.GPIO3,esp_hal::gpio::Level::Low, OutputConfig::default()));
 
+    _spawner.spawn(led_task(led).unwrap());
+    _spawner.spawn(alarm_task(buzzer, 10, 0.2, button).unwrap());
+    loop {
+        Timer::after(Duration::from_millis(3600_000)).await;
+    }
 }
 
+#[embassy_executor::task]
+async fn led_task(mut led: Output<'static>) {
+    loop {
+        led.toggle();
+        if led.is_set_high() {
+            info!("High")
+        }else{
+            info!("Low")
+        }
+        Timer::after(Duration::from_millis(1000)).await;
+    }
+}
+
+#[embassy_executor::task]
+async fn alarm_task(mut buzzer: Buzzer,  duration_seconds: u8, frequency: f32, mut interupt_button: Input<'static>) {
+    loop{
+        Timer::after(Duration::from_millis(10000)).await;
+        info!("Buzzing");
+        buzzer.buzz(duration_seconds, frequency, &mut interupt_button).await;
+        info!("Buzzing stopped");
+    }
+}
