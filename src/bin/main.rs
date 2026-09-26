@@ -81,7 +81,7 @@ async fn main(spawner: Spawner) -> ! {
         alarm_table_apply_mut(|t| 
             {
                 t.clear();
-                t.push_alarm(AlarmTime{weekday: 5, hour: 10, minute: 43});
+                DEFAULT_ALARMS.iter().for_each(|&alarm| t.push_alarm(alarm).unwrap());
             });
     }
 
@@ -150,3 +150,13 @@ async fn alarm(mut buzzer: Buzzer, duration_seconds: u8, frequency: f32, mut int
     buzzer.buzz(duration_seconds, frequency, &mut interupt_button).await;
     info!("Buzzing stopped");
 }
+
+const DEFAULT_ALARMS: [AlarmTime; 7] = [
+    AlarmTime{ weekday: 0, hour: 4, minute: 50},
+    AlarmTime{ weekday: 1, hour: 4, minute: 50},
+    AlarmTime{ weekday: 2, hour: 8, minute: 10},
+    AlarmTime{ weekday: 3, hour: 8, minute: 10},
+    AlarmTime{ weekday: 4, hour: 8, minute: 10},
+    AlarmTime{ weekday: 5, hour: 8, minute: 10},
+    AlarmTime{ weekday: 6, hour: 8, minute: 10},
+];
