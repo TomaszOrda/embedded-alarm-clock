@@ -132,7 +132,6 @@ fn update_display(epaper_display: &mut EPaperDisplay, time: NaiveTime) {
     info!("Current time {}", current_time_string);
     epaper_display.draw_text(&current_time_string);
     epaper_display.flush();
-    epaper_display.wait_till_idle().unwrap(); //this thing
 }
 
 #[embassy_executor::task]
