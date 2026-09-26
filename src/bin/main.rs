@@ -8,7 +8,7 @@
 #![deny(clippy::large_stack_frames)]
 
 
-use ds323x::{NaiveTime, Timelike};
+use ds323x::NaiveTime;
 use esp_backtrace as _;
 use embassy_time::{Timer, Duration};
 use embassy_executor::Spawner;
@@ -19,8 +19,10 @@ use esp_hal::i2c;
 use esp_hal::time::Rate;
 use esp_hal::gpio::{Input, InputConfig, Level::{self}, Output, OutputConfig};
 use esp_hal::spi::{Mode, master::{Config, Spi}};
+use esp_hal::ram;
 use log::info;
 
+use embedded_alarm_clock::alarm_table::{AlarmTable, AlarmTime};
 use embedded_alarm_clock::epaper::EPaperDisplay;
 use embedded_alarm_clock::buzzer::Buzzer;
 use embedded_alarm_clock::rtc::RTC;
@@ -28,6 +30,10 @@ use embedded_alarm_clock::rtc::RTC;
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
 esp_bootloader_esp_idf::esp_app_desc!();
+
+
+#[ram(unstable(rtc_fast, persistent))]
+static mut ALARMS_TABLE: AlarmTable = AlarmTable::new();
 
 #[allow(
     clippy::large_stack_frames,
@@ -71,6 +77,14 @@ async fn main(spawner: Spawner) -> ! {
                                                                                              .with_sda(i2c_sda);
     let mut rtc: RTC = RTC::new(i2c, peripherals.LPWR, #[cfg(not(debug_assertions))] peripherals.GPIO5.into_pull_up_input().into());
 
+    if alarm_table_apply(|t| !t.is_consistent()) {
+        alarm_table_apply_mut(|t| 
+            {
+                t.clear();
+                t.push_alarm(AlarmTime{weekday: 5, hour: 10, minute: 43});
+            });
+    }
+
     let woke_from_sleep: bool = match wakeup_cause(){
         esp_hal::system::SleepSource::Timer => true,
         esp_hal::system::SleepSource::Ext1 => true,
@@ -96,9 +110,9 @@ async fn main(spawner: Spawner) -> ! {
     let button: Input<'_> = Input::new(u0rxd, InputConfig::default().with_pull(esp_hal::gpio::Pull::None));
     let buzzer: Buzzer = Buzzer::new(Output::new(peripherals.GPIO4, esp_hal::gpio::Level::Low, OutputConfig::default()));
 
-    if rtc.get_time().unwrap().minute()%5 == 0 {
+    if alarm_table_apply(|t| t.contains(&rtc.get_date_time().unwrap().into())) {
         spawner.spawn(update_display_task(epaper_display, rtc.get_time().unwrap()).unwrap());
-        alarm(buzzer, 10, 0.2, button).await;
+        alarm(buzzer, 120, 1.0, button).await;
     } else{
         update_display(&mut epaper_display, rtc.get_time().unwrap());
     }
@@ -107,12 +121,18 @@ async fn main(spawner: Spawner) -> ! {
     rtc.sleep_deep();
 }
 
+pub fn alarm_table_apply_mut<R>(func: impl FnOnce(&mut AlarmTable) -> R) -> R{
+    unsafe { func(&mut *(&raw mut ALARMS_TABLE)) }
+}
+pub fn alarm_table_apply<R>(func: impl FnOnce(&AlarmTable) -> R) -> R{
+    unsafe { func(& *(&raw const ALARMS_TABLE)) }
+}
 fn update_display(epaper_display: &mut EPaperDisplay, time: NaiveTime) {
     let current_time_string = RTC::format_time_hh_mm(&time);
     info!("Current time {}", current_time_string);
     epaper_display.draw_text(&current_time_string);
     epaper_display.flush();
-    epaper_display.wait_till_idle().unwrap();
+    epaper_display.wait_till_idle().unwrap(); //this thing
 }
 
 #[embassy_executor::task]
