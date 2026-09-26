@@ -59,6 +59,7 @@ impl EPaperDisplay
     }
     pub fn draw_text(&mut self, text:&str){
         let renderer : FontRenderer = FontRenderer::new::<u8g2_font_logisoso92_tn>();
+        self.display.clear(Color::White);
         renderer.render_aligned(
             text,
             self.display.bounding_box().center(),
