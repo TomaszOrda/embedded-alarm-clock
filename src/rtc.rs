@@ -38,9 +38,12 @@ impl RTC{
     }
     pub fn get_time_hh_mm(&mut self) ->Option<String<5>>{
         return match self.rtc.time(){
-            Ok(time) => Some(format!("{:02}:{:02}",time.hour(), time.minute()).unwrap()),
+            Ok(time) => Some(Self::format_time_hh_mm(&time)),
             Err(_e) => None
         }
+    }
+    pub fn format_time_hh_mm(time: &NaiveTime) ->String<5>{
+        format!("{:02}:{:02}",time.hour(), time.minute()).unwrap()
     }
     #[cfg(not(debug_assertions))]
     pub fn sleep_deep(&mut self) -> !{
