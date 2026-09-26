@@ -43,6 +43,12 @@
             "attrs": { "value": "10000" },
             "rotate": 270
         },
+        {   "type": "wokwi-resistor",
+            "id": "r5",
+            "top": -70,
+            "left": -5,
+            "attrs": { "value": "10000" }
+        },
         {   "type": "wokwi-buzzer",
             "id": "buzz",
             "top": -180,
@@ -69,6 +75,9 @@
         
         [ "buzz:2", "esp:D2", "green", [ "v10"] ],
         [ "buzz:1", "esp:GND", "black", [ "v40", "h107", "v100"] ],
+
+        [ "esp:D2", "r5:1", "green", [ "h-40", "v40"] ],
+        [ "r5:2", "esp:GND", "black", [ "h35", "v40"] ],
         
         [ "rtc1:SDA", "esp:D4", "green", [ "h15", "v5" ] ],
         [ "rtc1:SCL", "esp:D5", "green", [  ] ],
