@@ -40,7 +40,7 @@ async fn main(spawner: Spawner) -> ! {
 
     esp_println::logger::init_logger_from_env();
 
-    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::_80MHz);
     let peripherals = esp_hal::init(config);
 
     let timg0 = esp_hal::timer::timg::TimerGroup::new(peripherals.TIMG0);
@@ -84,7 +84,7 @@ async fn main(spawner: Spawner) -> ! {
 
     let spi = Spi::new(peripherals.SPI2, 
                        Config::default().with_mode(Mode::_0)
-                                        .with_frequency(Rate::from_mhz(4)))
+                                        .with_frequency(Rate::from_mhz(80)))
                                         .unwrap()
                                         .with_sck(spi_sck)
                                         .with_mosi(spi_mosi);
@@ -96,7 +96,7 @@ async fn main(spawner: Spawner) -> ! {
     let button: Input<'_> = Input::new(u0rxd, InputConfig::default().with_pull(esp_hal::gpio::Pull::None));
     let buzzer: Buzzer = Buzzer::new(Output::new(peripherals.GPIO4, esp_hal::gpio::Level::Low, OutputConfig::default()));
 
-    if rtc.get_time().unwrap().minute()%1 == 0 {
+    if rtc.get_time().unwrap().minute()%5 == 0 {
         spawner.spawn(update_display_task(epaper_display, rtc.get_time().unwrap()).unwrap());
         alarm(buzzer, 10, 0.2, button).await;
     } else{
