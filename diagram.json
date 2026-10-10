@@ -79,9 +79,9 @@
         [ "esp:D2", "r5:1", "green", [ "h-40", "v40"] ],
         [ "r5:2", "esp:GND", "black", [ "h35", "v40"] ],
         
-        [ "rtc1:SDA", "esp:D4", "green", [ "h15", "v5" ] ],
+        [ "rtc1:SDA", "esp:D4", "blue", [ "h15", "v5" ] ],
         [ "rtc1:SCL", "esp:D5", "green", [  ] ],
-        [ "rtc1:SQW", "esp:D3", "green", [ "h15", "v5" ] ],
+        [ "rtc1:SQW", "esp:D3", "purple", [ "h15", "v5" ] ],
         [ "rtc1:GND", "esp:GND", "black", [ "h25", "v-142", "h170", "v-130" ] ],
         [ "rtc1:5V", "esp:5V", "red", [ "h20", "v-137", "h163", "v-130" ] ],
         
