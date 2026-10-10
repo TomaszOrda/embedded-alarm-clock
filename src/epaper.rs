@@ -29,7 +29,8 @@ pub struct EPaperDisplay
     epd2in9: Epd2in9<SPIDEV, BUSY, DC, RST, Delay>,
     display: Display2in9,
     delay: Delay,
-    rng: Rng
+    rng: Rng,
+    old_frame: [u8; 128 * 296 / 8]
 }
 impl EPaperDisplay
 {
@@ -42,7 +43,8 @@ impl EPaperDisplay
             delay,
             spi_dev,
             display : Display2in9::default(),
-            rng: esp_hal::rng::Rng::new()
+            rng: esp_hal::rng::Rng::new(),
+            old_frame: [0; 128*296/8]
         };
         this.display.clear(Color::White);
         this.display.set_rotation(DisplayRotation::Rotate90);
@@ -71,21 +73,22 @@ impl EPaperDisplay
     }
     pub fn flush(&mut self){
         if self.should_full_refresh(){
-            self.flush_full();
+            self.flush_quick();
         }else{
             self.flush_quick();
         }
     }
     fn flush_quick(&mut self){
         info!("Quick flush");
-        self.epd2in9.update_new_frame(&mut self.spi_dev, &self.display.buffer(), &mut self.delay).unwrap();
-        self.epd2in9.display_new_frame(&mut self.spi_dev, &mut self.delay).unwrap();
+        self.epd2in9.update_old_frame(&mut self.spi_dev, &self.old_frame, &mut self.delay).unwrap();
+        self.epd2in9.update_and_display_new_frame(&mut self.spi_dev, &self.display.buffer(), &mut self.delay).unwrap();
+        self.old_frame.copy_from_slice(self.display.buffer());
         self.wait_till_idle().unwrap();
     }
     fn flush_full(&mut self){    
         info!("Full flush");
-        self.epd2in9.update_old_frame(&mut self.spi_dev, &self.display.buffer(), &mut self.delay).unwrap();
-        self.epd2in9.display_frame(&mut self.spi_dev, &mut self.delay).unwrap();
+        self.epd2in9.update_and_display_frame(&mut self.spi_dev, &self.display.buffer(), &mut self.delay).unwrap();
+        self.old_frame.copy_from_slice(self.display.buffer());
         self.wait_till_idle().unwrap();
     }
     pub fn wait_till_idle(&mut self) -> Result<(), embedded_hal_bus::spi::DeviceError<esp_hal::spi::Error, core::convert::Infallible>>{
