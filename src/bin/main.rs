@@ -75,7 +75,13 @@ async fn main(spawner: Spawner) -> ! {
     let i2c = i2c::master::I2c::new(peripherals.I2C0,I2CConfig::default()).unwrap()
                                                                                              .with_scl(i2c_scl)
                                                                                              .with_sda(i2c_sda);
-    let mut rtc: RTC = RTC::new(i2c, peripherals.LPWR, #[cfg(not(debug_assertions))] peripherals.GPIO5.into_pull_up_input().into());
+                                                                                        
+    #[cfg(debug_assertions)]
+    let mut rtc: RTC = RTC::new(i2c, peripherals.LPWR);
+
+    #[cfg(not(debug_assertions))]
+    let mut rtc: RTC = RTC::new(i2c, peripherals.LPWR, peripherals.GPIO5.into());
+
 
     if alarm_table_apply(|t| !t.is_consistent()) {
         alarm_table_apply_mut(|t| 
