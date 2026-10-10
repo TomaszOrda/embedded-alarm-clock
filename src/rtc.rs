@@ -68,5 +68,6 @@ impl RTC{
             second: 0
         };
         self.rtc.set_alarm1_day(alarm, ds323x::Alarm1Matching::SecondsMatch).unwrap();
+        self.rtc.enable_alarm1_interrupts().unwrap();
     }
 }
