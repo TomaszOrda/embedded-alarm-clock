@@ -3,7 +3,7 @@ use ds323x::{DateTimeAccess, DayAlarm1, Ds323x, NaiveDateTime, NaiveTime, Rtcc, 
 use heapless::{String, format};
 use esp_hal::{peripherals::LPWR, rtc_cntl::Rtc};
 #[cfg(not(debug_assertions))]
-use esp_hal::{peripherals::LPWR, rtc_cntl::sleep::WakeupLevel};
+use esp_hal::{rtc_cntl::sleep::WakeupLevel};
 
 type I2c = esp_hal::i2c::master::I2c<'static, esp_hal::Blocking>;
 
@@ -47,6 +47,8 @@ impl RTC{
     }
     #[cfg(not(debug_assertions))]
     pub fn sleep_deep(&mut self) -> !{
+        use esp_hal::rtc_cntl::sleep::RtcioWakeupSource;
+
         self.rtc.clear_alarm1_matched_flag().unwrap();
         self.mcu_rtc.sleep_deep(&[&RtcioWakeupSource::new(&mut [(&mut self.wake_pin, WakeupLevel::Low)])])
     }
