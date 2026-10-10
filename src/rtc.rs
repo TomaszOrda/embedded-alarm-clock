@@ -1,7 +1,10 @@
 
-use ds323x::{DateTimeAccess, DayAlarm1, Ds323x, NaiveDateTime, NaiveTime, Rtcc, Timelike};
+use core::str::FromStr;
+use ds323x::{DateTimeAccess, DayAlarm1, Ds323x, Error::Comm, NaiveDateTime, NaiveTime, Rtcc, Timelike};
 use heapless::{String, format};
 use esp_hal::{peripherals::LPWR, rtc_cntl::Rtc};
+use log::info;
+
 #[cfg(not(debug_assertions))]
 use esp_hal::{rtc_cntl::sleep::WakeupLevel};
 
@@ -23,6 +26,19 @@ impl RTC{
         };
         this.set_alarm_every_minute();
         this
+    }
+    pub fn set_date_time(&mut self, time:&str)->(){
+        match NaiveDateTime::from_str(time){
+            Ok(naive_date_time) => match self.rtc.set_datetime(&naive_date_time){
+                Ok(_) => (),
+                Err(e) => match e{
+                    ds323x::Error::InvalidInputData => info!("rtc set datetime error: Invalid input data"),
+                    ds323x::Error::InvalidDeviceState => info!("rtc set datetime error: Invalid device state"),
+                    Comm(e) => info!("{}", e)
+                } 
+            },
+            Err(e) => info!("{}", e)
+        }
     }
     pub fn get_time(&mut self) -> Option<NaiveTime>{
         return match self.rtc.time(){
