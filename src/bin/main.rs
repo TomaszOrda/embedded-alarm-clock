@@ -26,6 +26,7 @@ use embedded_alarm_clock::alarm_table::{AlarmTable, AlarmTime};
 use embedded_alarm_clock::epaper::EPaperDisplay;
 use embedded_alarm_clock::buzzer::Buzzer;
 use embedded_alarm_clock::rtc::RTC;
+use esp_hal::usb_serial_jtag::{UsbSerialJtag};
 
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
@@ -97,6 +98,48 @@ async fn main(spawner: Spawner) -> ! {
         _ => false
     };
 
+
+
+    let usb = UsbSerialJtag::new(peripherals.USB_DEVICE);
+    let (mut rx, mut _tx) = usb.split();
+    
+    
+    if !woke_from_sleep && usb_connected(){
+        info!("PC connected");
+        let mut buf = heapless::String::<64>::new();
+        info!("{}",alarm_table_apply(|t| t.contains(&rtc.get_date_time().unwrap().into())));
+        loop {
+            match rx.read_byte() {
+                Ok(b) => {
+                    if b == b'\n' || b == b'\r' {
+                        match buf.trim().split(" ").next() {
+                            Some("get-time") => match rtc.get_time_hh_mm() {
+                                Some(t) => info!("TIME {}", t.as_str()),
+                                None => info!("ERR no rtc"),
+                            },
+                            Some("set-time") => {
+                                match buf.trim().split(" ").nth(1){
+                                    Some(time) => {
+                                        rtc.set_date_time(time);
+                                        info!("Seting time to {}", time);
+                                    },
+                                    None => info!("Wrong datetime format")
+                                }
+                            }
+                            Some("help") => info!("CMDS time buzz"),
+                            Some(other) => info!("ERR unknown: {}", other),
+                            None => info!("ERR"),
+                        }
+                        buf.clear();
+                    }else{
+                        let _ = buf.push(b as char).unwrap();
+                    }
+                }
+                _ => Timer::after(Duration::from_millis(50)).await,  // fine to be lazy now
+            }
+        }
+    }
+
     let cs = Output::new(peripherals.GPIO9, Level::High, OutputConfig::default());
     let dc = Output::new(peripherals.GPIO21, Level::High, OutputConfig::default());
     let rst = Output::new(peripherals.GPIO2, Level::High, OutputConfig::default());
@@ -155,6 +198,13 @@ async fn alarm(mut buzzer: Buzzer, duration_seconds: u8, frequency: f32, mut int
     buzzer.buzz(duration_seconds, frequency, &mut interupt_button).await;
     info!("Buzzing stopped");
 }
+
+const USB_OUT_EP0_ST: *mut u32 = (0x6004_3000 + 0x38) as *mut u32;
+#[inline]
+fn usb_connected() -> bool {
+    unsafe { core::ptr::read_volatile(USB_OUT_EP0_ST) != 0 }
+}
+
 
 const DEFAULT_ALARMS: [AlarmTime; 7] = [
     AlarmTime{ weekday: 0, hour: 4, minute: 50},
