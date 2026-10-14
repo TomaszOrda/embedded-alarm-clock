@@ -59,8 +59,8 @@ impl AlarmClockPeripherals{
                 None => info!("Wrong datetime format")
             }
             Some("help") => self.handle_help(),
-            Some(other) => info!("ERR unknown: {}", other),
-            None => info!("ERR"),
+            Some("") | None => (),
+            Some(other) => info!("ERR unknown: {}", other)
         }
     }
     pub fn handle_get_time(&mut self){
