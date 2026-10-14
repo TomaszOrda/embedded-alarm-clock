@@ -121,7 +121,7 @@ async fn main(spawner: Spawner) -> ! {
                                 match buf.trim().split(" ").nth(1){
                                     Some(time) => {
                                         rtc.set_date_time(time);
-                                        info!("Seting time to {}", time);
+                                        info!("Setting time to {}", time);
                                     },
                                     None => info!("Wrong datetime format")
                                 }
@@ -151,7 +151,9 @@ async fn main(spawner: Spawner) -> ! {
                                         .unwrap()
                                         .with_sck(spi_sck)
                                         .with_mosi(spi_mosi);
+    info!("Buses initialized");
     let mut epaper_display = EPaperDisplay::new(spi, cs, busy, dc, rst, woke_from_sleep);
+    info!("Epaper initialized");
     epaper_display.wait_till_idle().unwrap();
     info!("Display initialized");
 
@@ -166,7 +168,7 @@ async fn main(spawner: Spawner) -> ! {
         update_display(&mut epaper_display, rtc.get_time().unwrap());
     }
     
-
+    info!("Going to sleep");
     rtc.sleep_deep();
 }
 
