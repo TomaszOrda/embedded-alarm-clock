@@ -158,7 +158,7 @@ async fn main(spawner: Spawner) -> ! {
     info!("Display initialized");
 
     //Note that we use u0rxd to save one pin for button
-    let button: Input<'_> = Input::new(u0rxd, InputConfig::default().with_pull(esp_hal::gpio::Pull::None));
+    let button: Input<'_> = Input::new(u0rxd, InputConfig::default().with_pull(esp_hal::gpio::Pull::Up));
     let buzzer: Buzzer = Buzzer::new(Output::new(peripherals.GPIO4, esp_hal::gpio::Level::Low, OutputConfig::default()));
 
     if alarm_table_apply(|t| t.contains(&rtc.get_date_time().unwrap().into())) {
