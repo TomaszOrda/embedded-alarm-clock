@@ -9,7 +9,8 @@
             "top": 0,
             "left": 0,
             "attrs": {
-                "flashSize": "16"
+                "flashSize": "16",
+                "serialInterface": "USB_SERIAL_JTAG"
             }
         },
         {   "type": "wokwi-ds1307", 

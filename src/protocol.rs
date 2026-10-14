@@ -20,23 +20,22 @@ impl SerialConsole{
     pub async fn start_communication(&mut self) -> !{
         let mut buf = heapless::String::<{SerialConsole::COMMUNICATION_BUFFER_SIZE}>::new();
         loop {
-            if buf.len() >= SerialConsole::COMMUNICATION_BUFFER_SIZE{
-                info!("Command too long");
-                buf.clear();
-                while let Ok(b) = self.rx.read_byte(){
-                    if b == b'\n' || b == b'\r'{
-                        break
-                    }
-                };
-                continue;
-            }
             match self.rx.read_byte() {
                 Ok(b) => {
                     if b == b'\n' || b == b'\r' {
                         self.controller.handle_command(&buf);
                         buf.clear();
                     }else{
-                        let _ = buf.push(b as char).unwrap();
+                        if let Err(_) = buf.push(b as char){
+                            info!("Command too long");
+                            buf.clear();
+                            while let Ok(b) = self.rx.read_byte(){
+                                if b == b'\n' || b == b'\r'{
+                                    break
+                                }
+                            };
+                            continue;
+                        }
                     }
                 }
                 _ => Timer::after(Duration::from_millis(50)).await,  // fine to be lazy now
