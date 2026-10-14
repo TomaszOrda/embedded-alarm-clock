@@ -147,7 +147,7 @@ async fn main(spawner: Spawner) -> ! {
 
     let spi = Spi::new(peripherals.SPI2, 
                        Config::default().with_mode(Mode::_0)
-                                        .with_frequency(Rate::from_mhz(80)))
+                                        .with_frequency(Rate::from_mhz(8)))
                                         .unwrap()
                                         .with_sck(spi_sck)
                                         .with_mosi(spi_mosi);
