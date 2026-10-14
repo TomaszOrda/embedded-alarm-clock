@@ -52,9 +52,10 @@ impl AlarmClockPeripherals{
         Self { rtc }
     }
     pub fn handle_command(&mut self, command: &str){
-        match command.trim().split(" ").next() {
+        let mut words = command.trim().split_whitespace();
+        match words.next() {
             Some("get-time") => self.handle_get_time(),
-            Some("set-time") => match command.trim().split(" ").nth(1){
+            Some("set-time") => match words.next(){
                 Some(time) => self.handle_set_time(time),
                 None => info!("Wrong datetime format")
             }
