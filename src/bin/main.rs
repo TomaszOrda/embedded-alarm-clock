@@ -12,6 +12,7 @@ use ds323x::NaiveTime;
 use esp_backtrace as _;
 use embassy_time::{Timer, Duration};
 use embassy_executor::Spawner;
+use esp_hal::usb_serial_jtag::UsbSerialJtag;
 use esp_hal::clock::CpuClock;
 use esp_hal::i2c::master::{Config as I2CConfig};
 use esp_hal::rtc_cntl::wakeup_cause;
@@ -26,7 +27,7 @@ use embedded_alarm_clock::alarm_table::{AlarmTable, AlarmTime};
 use embedded_alarm_clock::epaper::EPaperDisplay;
 use embedded_alarm_clock::buzzer::Buzzer;
 use embedded_alarm_clock::rtc::RTC;
-use esp_hal::usb_serial_jtag::{UsbSerialJtag};
+use embedded_alarm_clock::protocol::{AlarmClockPeripherals, SerialConsole};
 
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
@@ -101,43 +102,13 @@ async fn main(spawner: Spawner) -> ! {
 
 
     let usb = UsbSerialJtag::new(peripherals.USB_DEVICE);
-    let (mut rx, mut _tx) = usb.split();
+    let (rx, mut _tx) = usb.split();
     
     
     if !woke_from_sleep && usb_connected(){
         info!("PC connected");
-        let mut buf = heapless::String::<64>::new();
-        info!("{}",alarm_table_apply(|t| t.contains(&rtc.get_date_time().unwrap().into())));
-        loop {
-            match rx.read_byte() {
-                Ok(b) => {
-                    if b == b'\n' || b == b'\r' {
-                        match buf.trim().split(" ").next() {
-                            Some("get-time") => match rtc.get_time_hh_mm() {
-                                Some(t) => info!("TIME {}", t.as_str()),
-                                None => info!("ERR no rtc"),
-                            },
-                            Some("set-time") => {
-                                match buf.trim().split(" ").nth(1){
-                                    Some(time) => {
-                                        rtc.set_date_time(time);
-                                        info!("Setting time to {}", time);
-                                    },
-                                    None => info!("Wrong datetime format")
-                                }
-                            }
-                            Some("help") => info!("CMDS time buzz"),
-                            Some(other) => info!("ERR unknown: {}", other),
-                            None => info!("ERR"),
-                        }
-                        buf.clear();
-                    }else{
-                        let _ = buf.push(b as char).unwrap();
-                    }
-                }
-                _ => Timer::after(Duration::from_millis(50)).await,  // fine to be lazy now
-            }
-        }
+        let mut protocol = SerialConsole::new(AlarmClockPeripherals::new(rtc), rx);
+        protocol.start_communication().await
     }
 
     let cs = Output::new(peripherals.GPIO9, Level::High, OutputConfig::default());

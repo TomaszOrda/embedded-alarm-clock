@@ -3,3 +3,4 @@ pub mod alarm_table;
 pub mod buzzer;
 pub mod rtc;
 pub mod epaper;
+pub mod protocol;
