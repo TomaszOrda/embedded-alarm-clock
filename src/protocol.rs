@@ -4,11 +4,13 @@ use log::info;
 
 use crate::rtc::RTC;
 
+
 pub struct SerialConsole{
     controller: AlarmClockPeripherals,
     rx: UsbSerialJtagRx<'static, Blocking>
 }
 impl SerialConsole{
+    const COMMUNICATION_BUFFER_SIZE: usize = 64;
     pub fn new(controller: AlarmClockPeripherals, rx: UsbSerialJtagRx<'static, Blocking>)->Self{
         Self{
             controller,
@@ -16,8 +18,18 @@ impl SerialConsole{
         }
     }
     pub async fn start_communication(&mut self) -> !{
-        let mut buf = heapless::String::<64>::new();
+        let mut buf = heapless::String::<{SerialConsole::COMMUNICATION_BUFFER_SIZE}>::new();
         loop {
+            if buf.len() >= SerialConsole::COMMUNICATION_BUFFER_SIZE{
+                info!("Command too long");
+                buf.clear();
+                while let Ok(b) = self.rx.read_byte(){
+                    if b == b'\n' || b == b'\r'{
+                        break
+                    }
+                };
+                continue;
+            }
             match self.rx.read_byte() {
                 Ok(b) => {
                     if b == b'\n' || b == b'\r' {
@@ -36,7 +48,7 @@ impl SerialConsole{
 pub struct AlarmClockPeripherals{
     rtc: RTC
 }
-impl AlarmClockPeripherals{
+impl AlarmClockPeripherals{ 
     pub fn new(rtc: RTC) -> Self{
         Self { rtc }
     }
