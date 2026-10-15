@@ -66,6 +66,7 @@ impl AlarmClockPeripherals{
                 Some(id) => self.handle_remove_alarm(id),
                 None => info!("Wrong datetime format")
             }
+            Some("ping") => self.handle_ping(),
             Some("help") => self.handle_help(),
             None => (),
             Some(other) => info!("ERR unknown: {}", other)
@@ -108,5 +109,7 @@ impl AlarmClockPeripherals{
             None => info!("Failed to remove alarm at id {}",id)
         }
     }
-
+    pub fn handle_ping(&self){
+        info!("pong")
+    }
 }
