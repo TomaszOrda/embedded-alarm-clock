@@ -107,7 +107,7 @@ async fn main(spawner: Spawner) -> ! {
     
     if !woke_from_sleep && usb_connected(){
         info!("PC connected");
-        let mut protocol = SerialConsole::new(AlarmClockPeripherals::new(rtc), rx);
+        let mut protocol = SerialConsole::new(AlarmClockPeripherals::new(rtc, get_alarm_table()), rx);
         protocol.start_communication().await
     }
 
@@ -149,6 +149,9 @@ pub fn alarm_table_apply_mut<R>(func: impl FnOnce(&mut AlarmTable) -> R) -> R{
 pub fn alarm_table_apply<R>(func: impl FnOnce(&AlarmTable) -> R) -> R{
     unsafe { func(& *(&raw const ALARMS_TABLE)) }
 }
+fn get_alarm_table() -> &'static mut AlarmTable {
+    unsafe { &mut *(&raw mut ALARMS_TABLE) }
+} 
 fn update_display(epaper_display: &mut EPaperDisplay, time: NaiveTime) {
     let current_time_string = RTC::format_time_hh_mm(&time);
     info!("Current time {}", current_time_string);

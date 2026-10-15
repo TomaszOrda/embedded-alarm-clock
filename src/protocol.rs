@@ -2,7 +2,7 @@ use esp_hal::{Blocking, usb_serial_jtag::UsbSerialJtagRx};
 use embassy_time::{Timer, Duration};
 use log::info;
 
-use crate::rtc::RTC;
+use crate::{alarm_table::{AlarmTable, AlarmTime}, rtc::RTC};
 
 
 pub struct SerialConsole{
@@ -45,11 +45,12 @@ impl SerialConsole{
 }
 
 pub struct AlarmClockPeripherals{
-    rtc: RTC
+    rtc: RTC,
+    alarm_table: &'static mut AlarmTable
 }
 impl AlarmClockPeripherals{ 
-    pub fn new(rtc: RTC) -> Self{
-        Self { rtc }
+    pub fn new(rtc: RTC, alarm_table: &'static mut AlarmTable) -> Self{
+        Self { rtc, alarm_table }
     }
     pub fn handle_command(&mut self, command: &str){
         let mut words = command.trim().split_whitespace();
@@ -59,8 +60,14 @@ impl AlarmClockPeripherals{
                 Some(time) => self.handle_set_time(time),
                 None => info!("Wrong datetime format")
             }
+            Some("get-alarms") => self.handle_get_alarms(),
+            Some("set-alarm") => self.handle_set_alarm(&words.fold(heapless::String::<64>::new(), |mut acc, word| {acc.push_str(word).ok();acc.push_str(" ").ok(); acc})),
+            Some("remove-alarm") => match words.next(){
+                Some(id) => self.handle_remove_alarm(id),
+                None => info!("Wrong datetime format")
+            }
             Some("help") => self.handle_help(),
-            Some("") | None => (),
+            None => (),
             Some(other) => info!("ERR unknown: {}", other)
         }
     }
@@ -77,4 +84,29 @@ impl AlarmClockPeripherals{
     pub fn handle_help(&self){
         info!("CMDS time buzz")
     }
+    pub fn handle_get_alarms(&self){
+        info!("{}", self.alarm_table)
+    }
+    pub fn handle_set_alarm(&mut self, time: &str){
+        let alarm: Option<AlarmTime> = AlarmTime::from_string(time);
+        if alarm.is_none(){
+            info!("Failed to parse alarm time: {}", time);
+            return ();
+        }
+        match self.alarm_table.push_alarm(alarm.unwrap()){
+            Some(_) => info!("Created alarm: {}", alarm.unwrap()),
+            None => info!("Failed to push new alarm")
+        }
+    }
+    pub fn handle_remove_alarm(&mut self, id_str: &str){
+        let id: usize = match id_str.parse(){
+            Ok(parsed_id) => parsed_id,
+            Err(_e) => {info!("Failed to parse id {}", id_str); return ();}
+        };
+        match self.alarm_table.remove_alarm(id) {
+            Some(()) => info!("Alarm at id {} removed", id),
+            None => info!("Failed to remove alarm at id {}",id)
+        }
+    }
+
 }

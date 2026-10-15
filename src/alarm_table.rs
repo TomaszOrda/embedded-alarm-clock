@@ -1,3 +1,5 @@
+use core::fmt;
+
 use ds323x::{Datelike, NaiveDateTime, Timelike};
 const ALARMS_MAX_LENGTH: u8 = 16;
 const CRC16: crc::Crc<u16> = crc::Crc::<u16>::new(&crc::CRC_16_IBM_SDLC);
@@ -23,6 +25,52 @@ impl AlarmTime{
             minute: 0
         }
     }
+    // up to 9 character string
+    fn weekday_to_string(weekday:u8) -> &'static str{
+        match weekday{
+            0 => "Monday",
+            1 => "Tuesday",
+            2 => "Wednesday",
+            3 => "Thursday",
+            4 => "Friday",
+            5 => "Saturday",
+            6 => "Sunday",
+            _ => "Unknown"
+        }
+    }
+    pub fn string_to_weekday(weekday_string:&str) -> Option<u8>{
+        if weekday_string.len()<3{
+            return None
+        }
+        let mut heapless_weekday = heapless::String::<64>::try_from(weekday_string).ok()?;
+        heapless_weekday.make_ascii_lowercase();
+        match &heapless_weekday.as_bytes()[0..3]{
+            b"mon" => Some(0),
+            b"tue" => Some(1),
+            b"wed" => Some(2),
+            b"thu" => Some(3),
+            b"fri" => Some(4),
+            b"sat" => Some(5),
+            b"sun" => Some(6),
+            _ => None
+        }
+    }
+    pub fn from_string(time:&str) -> Option<Self>{
+        let mut parts = time.trim().split_whitespace();
+        let weekday = AlarmTime::string_to_weekday(parts.next()?)?;
+        let mut hour_minute =  parts.next()?.split(":");
+        let hour:u8 = hour_minute.next()?.parse().ok()?;
+        let minute:u8 = hour_minute.next()?.parse().ok()?;
+        let alarm = Self{
+            weekday: weekday,
+            hour: hour,
+            minute: minute
+        };
+        if !alarm.is_valid(){
+            return None
+        }
+        Some(alarm)
+    }
 }
 impl From<NaiveDateTime> for AlarmTime {
     fn from(time: NaiveDateTime) -> Self {
@@ -40,6 +88,11 @@ impl From<&NaiveDateTime> for AlarmTime {
             hour: time.hour() as u8,
             minute: time.minute() as u8,
         }
+    }
+}
+impl fmt::Display for AlarmTime {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:9} — {:02}:{:02}",AlarmTime::weekday_to_string(self.weekday),self.hour,self.minute)
     }
 }
 pub struct AlarmTable{
@@ -80,6 +133,17 @@ impl AlarmTable{
         self.table_length = 0;
         self.recalculate_checksum();
     }
+    pub fn remove_alarm(&mut self, id: usize) -> Option<()>{
+        if id >= self.table_length as usize{
+            return None
+        }
+        for alarm_id in (id+1)..self.table_length as usize{
+            self.table[alarm_id-1] = self.table[alarm_id]
+        }
+        self.table_length = self.table_length - 1;
+        self.recalculate_checksum();
+        Some(())
+    }
     pub fn push_alarm(&mut self, alarm: AlarmTime)->Option<()>{
         if self.table_length == ALARMS_MAX_LENGTH{
             return None
@@ -94,5 +158,13 @@ impl AlarmTable{
     }
     pub fn contains_date_time(&self, alarm: &NaiveDateTime)->bool{
         return self.table[..self.table_length as usize].contains(&alarm.into())
+    }
+}
+impl fmt::Display for AlarmTable {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for (id,alarm) in self.table.iter().take(self.table_length as usize).enumerate(){
+            write!(f,"{}: {}\n", id, alarm)?;
+        }
+        Ok(())
     }
 }
