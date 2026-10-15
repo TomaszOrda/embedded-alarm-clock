@@ -19,21 +19,16 @@
             "attrs": {}, 
             "rotate": 180 
         },
-        {   "type": "wokwi-pushbutton",
-            "id": "btn", 
-            "top": 130, 
-            "left": 4 
-        },
         {   "type": "wokwi-led", 
             "id": "led2", 
-            "top": 110, 
+            "top": 105, 
             "left": 150, 
             "attrs": { "color": "red", "flip": "true" }, 
             "rotate": 0 
         },
         {   "type": "wokwi-resistor",
             "id": "r3",
-            "top": 156,
+            "top": 152,
             "left": 90,
             "attrs": { "value": "1000" }
         },
@@ -61,16 +56,44 @@
             "top": -77, 
             "left": 120, 
             "attrs": {} 
+        },
+        {   "type": "wokwi-slide-switch", 
+            "id": "switch1", 
+            "top": 127, 
+            "left": -50,
+            "rotate": 270,
+            "attrs": {} 
+        },
+        {   "type": "wokwi-ks2e-m-dc5", 
+            "id": "relay", 
+            "top": 129, 
+            "left": 0,
+            "attrs": {} 
+        },
+        {   "type": "wokwi-pushbutton",
+            "id": "btn", 
+            "top": 125, 
+            "left": 4 
         }
     ],
     "connections": [
-        [ "btn:1.r", "esp:GND", "black", [ "h5", "v10" ] ],
-        [ "btn:2.l", "esp:D7", "green", ["h-10", "v-40", "h77", "v-10"] ],
-        [ "btn:2.r", "r3:1", "green", [ ] ],
-        [ "r4:1", "btn:2.r", "green", [ "v10" ] ],
+       
+        [ "esp:3V3", "relay:COIL2", "white", [ ] ],
+        [ "btn:2.r", "relay:COIL1", "white", [ ] ],
+        [ "btn:1.r", "esp:GND", "black", [ "h10", "v10" ] ],
 
-        [ "r4:2", "esp:3V3", "red", ["v10"] ],
+        [ "r3:1", "relay:P1", "green", ["h10"] ],
+
+        [ "esp:GND", "relay:NO1", "wh", ["h18.5", "v90", "h-50", "v10"] ],
+        [ "esp:GND", "relay:NO2", "black", ["h18.5", "v90", "h-10"] ],
+        [ "esp:3V3", "relay:NC2", "white", ["h11.5", "v75", "h-10"] ],
+        [ "switch1:1", "relay:NO2", "green", [ "v3","h40", "v10" ] ],
         
+        [ "esp:D7", "relay:P2", "green", ["v15", "h-70", "v65", "h10"] ],
+        [ "switch1:2", "relay:P2", "green", [ "v-7", "h63", "v-10" ] ],
+        
+        
+
         [ "r3:2", "led2:C", "green", [ ] ],
         [ "led2:A", "esp:3V3", "red", [ "h-72", "v10"] ],
         
