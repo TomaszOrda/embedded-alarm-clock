@@ -33,7 +33,8 @@ epd-waveshare = "0.6.0"
 heapless = "0.9.3"
 crc = "3.4.0"
 u8g2-fonts = { version = "0.8", features = ["embedded_graphics_textstyle"] }
-
+chrono = { version = "0.4.45", default-features = false }
+chrono-tz = { version = "0.10.4", default-features = false }
 
 # For fine tuning these settings, please refer to https://doc.rust-lang.org/cargo/reference/profiles.html
 [profile.dev]
