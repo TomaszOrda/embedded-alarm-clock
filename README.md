@@ -5,3 +5,5 @@ As a prerequisite you need to install [Rust](https://doc.rust-lang.org/book/ch01
 To start you need to ``cargo build``. Then open `diagram.json` and run the simulation (or use `Ctrl+Shift+P` and choose `Wokwi: Start Simulation`).
 
 This project started using https://github.com/esp-rs/esp-generate/tree/main template.
+
+For configuring compiled clock the `.\cli` project is used. It is a separate rust project that needs to be `cargo run` from within `.\cli` folder. It establishes pairing with usb connected clock. Commands like `help`, `set-time`, `set-alarm` can be used. A clock reset is needed after finished configuration to come back to the normal non-pairing mode.
