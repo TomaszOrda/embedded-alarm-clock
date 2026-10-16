@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+espflash = "4.6.0"
 serialport = "4.10.1"
 
 [workspace]

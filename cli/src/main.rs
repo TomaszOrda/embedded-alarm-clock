@@ -1,6 +1,5 @@
 use core::time;
 use std::{io::{self, BufRead, Write}, thread::sleep};
-
 use serialport::{SerialPort, SerialPortInfo, SerialPortType::UsbPort};
 
 fn main() {
@@ -52,7 +51,7 @@ fn is_espressif_port(port: &SerialPortInfo) -> bool{
 
 
 fn ping(port: &mut dyn SerialPort) -> Option<String>{
-    if port.write_all("ping".as_bytes()).is_err(){
+    if port.write_all(b"ping\n").is_err(){
         return None
     };
     let mut buf = [0u8; 64];
@@ -65,5 +64,5 @@ fn ping(port: &mut dyn SerialPort) -> Option<String>{
 }
 
 fn can_ping(port: &mut dyn SerialPort) -> bool{
-    return ping(port).map(|response| response.trim() == "pong").unwrap_or(false)
+    return ping(port).is_some()
 }
