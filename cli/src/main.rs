@@ -1,6 +1,7 @@
 use core::time;
 use std::{io::{self, BufRead, Write}, thread::sleep};
 use serialport::{SerialPort, SerialPortInfo, SerialPortType::UsbPort};
+use chrono::Local;
 
 fn main() {
     let stdin = io::stdin();
@@ -24,7 +25,13 @@ fn main() {
     
     for line in stdin.lock().lines() {
         let line = line.unwrap();
-        port.write_all(format!("{line}\n").as_bytes()).unwrap();
+        let payload = match line.trim().split_whitespace().next(){
+            Some("sync-pc-time") => format!("set-time {}", Local::now().format("%Y-%m-%dT%H:%M:%S").to_string()),
+            Some("help") => {write_local_help(); line},
+            Some(_) => line,
+            None => continue
+        };
+        port.write_all(format!("{payload}\n").as_bytes()).unwrap();
         let mut reply = String::new();
         let mut buf = [0u8; 64];
         while let Ok(n) = port.read(&mut buf) {
@@ -62,4 +69,9 @@ fn ping(port: &mut dyn SerialPort) -> Option<String>{
 
 fn can_ping(port: &mut dyn SerialPort) -> bool{
     return ping(port).is_some()
+}
+
+fn write_local_help() -> (){
+    println!("CLI local commands:");
+    println!(" {:20}{}","sync-pc-time", "Set the time to local PC time");
 }
