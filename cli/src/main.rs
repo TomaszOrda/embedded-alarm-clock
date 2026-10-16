@@ -4,7 +4,7 @@ use serialport::{SerialPort, SerialPortInfo, SerialPortType::UsbPort};
 
 fn main() {
     let stdin = io::stdin();
-    println!("Looking for device");
+    println!("Looking for device. Connect and press reset.");
     let mut port = loop{
         if let Some(port_info) = get_usb_serial_port(){
             break serialport::new(port_info.port_name, 9600).open().unwrap();
@@ -14,8 +14,7 @@ fn main() {
         sleep(time::Duration::from_millis(500));
     };
     port.set_timeout(time::Duration::from_millis(500)).unwrap();
-    println!("Device found! {}", port.name().unwrap());
-    println!("Pairing. Waiting for reset on the connected device");
+    println!("Device found! {}. Pairing.", port.name().unwrap());
     while !can_ping(&mut *port){
         print!(".");
         io::stdout().flush().unwrap();
@@ -47,8 +46,6 @@ fn is_espressif_port(port: &SerialPortInfo) -> bool{
         _ => false
     }
 }
-
-
 
 fn ping(port: &mut dyn SerialPort) -> Option<String>{
     if port.write_all(b"ping\n").is_err(){
