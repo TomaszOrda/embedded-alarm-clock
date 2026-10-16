@@ -99,7 +99,7 @@ impl AlarmClockPeripherals{
     }
 
     pub fn handle_get_alarms(&self){
-        info!("{}", self.alarm_table)
+        info!("\n{}", self.alarm_table)
     }
     pub fn handle_set_alarm(&mut self, time: &str){
         let alarm: Option<AlarmTime> = AlarmTime::from_string(time);
