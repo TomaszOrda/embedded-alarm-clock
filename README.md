@@ -26,3 +26,7 @@ DS3231 has an onboard LED that drains a substantial amount of power compared to 
 
 Buzzer can be replaced with a coin cell vibration motor for a more pleasant (lower frequency) alarm experience. Wokwi does not support such hardware thus simple buzzer was used for simulation. However such motors require usually ~70mA current which is way more than GPIO can output. It will work using 40mA mode through a small resistor to limit pin wear — GPIOs should not be used too much above 20mA. A better solution is to use a N-MOSFET, basically any long-legged version like 2N7000 should work fine.
 
+### Known issues
+
+The epaper display currently can only do a full refresh. Through something that is likely a library issue partial refresh works just as a full refresh. I have not yet found a solution to this. It is important because of the annoying flickering during full flush and wake-time amount (power consumption).
+
