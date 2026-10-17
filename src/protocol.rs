@@ -66,6 +66,7 @@ impl AlarmClockPeripherals{
                 Some(id) => self.handle_remove_alarm(id),
                 None => info!("Wrong datetime format")
             }
+            Some("ping") => self.handle_ping(),
             Some("help") => self.handle_help(),
             None => (),
             Some(other) => info!("ERR unknown: {}", other)
@@ -82,10 +83,23 @@ impl AlarmClockPeripherals{
         info!("Setting time to {}", time);
     }
     pub fn handle_help(&self){
-        info!("CMDS time buzz")
+        info!("Commands:");
+        info!("<x> indicates user string input with specified format");
+        for (command, description) in [
+                    ("get-time",                        "Print current microcontroller time"),
+                    ("set-time <YYYY:MM::DDThh:mm:ss>", "Set microcontroller time"),
+                    ("get-alarms",                      "List alarms"),
+                    ("set-alarm <weekday> <hh:mm>",     "Add alarm"),
+                    ("remove-alarm <id>",               "Remove alarm; Ids might shift after removing an alarm."),
+                    ("ping",                            "Check connection"),
+                    ("help",                            "This message"),
+                ] {
+            info!("  {:<32}{}", command, description);
+        }
     }
+
     pub fn handle_get_alarms(&self){
-        info!("{}", self.alarm_table)
+        info!("\n{}", self.alarm_table)
     }
     pub fn handle_set_alarm(&mut self, time: &str){
         let alarm: Option<AlarmTime> = AlarmTime::from_string(time);
@@ -108,5 +122,7 @@ impl AlarmClockPeripherals{
             None => info!("Failed to remove alarm at id {}",id)
         }
     }
-
+    pub fn handle_ping(&self){
+        info!("pong")
+    }
 }

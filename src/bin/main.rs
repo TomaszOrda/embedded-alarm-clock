@@ -12,11 +12,11 @@ use ds323x::NaiveTime;
 use esp_backtrace as _;
 use embassy_time::{Timer, Duration};
 use embassy_executor::Spawner;
-use esp_hal::usb_serial_jtag::UsbSerialJtag;
+use esp_hal::usb_serial_jtag::{UsbSerialJtag, UsbSerialJtagRx};
 use esp_hal::clock::CpuClock;
 use esp_hal::i2c::master::{Config as I2CConfig};
 use esp_hal::rtc_cntl::wakeup_cause;
-use esp_hal::i2c;
+use esp_hal::{Blocking, i2c};
 use esp_hal::time::Rate;
 use esp_hal::gpio::{Input, InputConfig, Level::{self}, Output, OutputConfig};
 use esp_hal::spi::{Mode, master::{Config, Spi}};
@@ -102,10 +102,10 @@ async fn main(spawner: Spawner) -> ! {
 
 
     let usb = UsbSerialJtag::new(peripherals.USB_DEVICE);
-    let (rx, mut _tx) = usb.split();
+    let (mut rx, mut _tx) = usb.split();
     
     
-    if !woke_from_sleep && usb_connected(){
+    if !woke_from_sleep && usb_connected(&mut rx).await{
         info!("PC connected");
         let mut protocol = SerialConsole::new(AlarmClockPeripherals::new(rtc, get_alarm_table()), rx);
         protocol.start_communication().await
@@ -137,6 +137,7 @@ async fn main(spawner: Spawner) -> ! {
         alarm(buzzer, 120, 1.0, button).await;
     } else{
         update_display(&mut epaper_display, rtc.get_time().unwrap());
+        let _ = epaper_display.sleep();
     }
     
     info!("Going to sleep");
@@ -175,10 +176,16 @@ async fn alarm(mut buzzer: Buzzer, duration_seconds: u8, frequency: f32, mut int
     info!("Buzzing stopped");
 }
 
-const USB_OUT_EP0_ST: *mut u32 = (0x6004_3000 + 0x38) as *mut u32;
 #[inline]
-fn usb_connected() -> bool {
-    unsafe { core::ptr::read_volatile(USB_OUT_EP0_ST) != 0 }
+async fn usb_connected(rx: &mut UsbSerialJtagRx<'_, Blocking>) -> bool {
+    let deadline = embassy_time::Instant::now() + Duration::from_secs(2);
+    while embassy_time::Instant::now() < deadline {
+        match rx.read_byte() {
+            Ok(_) => return true,
+            Err(_would_block) => Timer::after(Duration::from_millis(50)).await,
+        }
+    }
+    return false;
 }
 
 

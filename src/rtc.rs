@@ -1,12 +1,11 @@
 
 use core::str::FromStr;
-use ds323x::{DateTimeAccess, DayAlarm1, Ds323x, Error::Comm, NaiveDateTime, NaiveTime, Rtcc, Timelike};
+use chrono::TimeZone;
+use chrono_tz::{UTC, Europe::Warsaw as LocalTimeZone};
+use ds323x::{DateTimeAccess, DayAlarm1, Ds323x, Error::Comm, NaiveDateTime, NaiveTime, Timelike};
 use heapless::{String, format};
 use esp_hal::{peripherals::LPWR, rtc_cntl::Rtc};
 use log::info;
-
-#[cfg(not(debug_assertions))]
-use esp_hal::{rtc_cntl::sleep::WakeupLevel};
 
 type I2c = esp_hal::i2c::master::I2c<'static, esp_hal::Blocking>;
 
@@ -29,7 +28,7 @@ impl RTC{
     }
     pub fn set_date_time(&mut self, time:&str)->(){
         match NaiveDateTime::from_str(time){
-            Ok(naive_date_time) => match self.rtc.set_datetime(&naive_date_time){
+            Ok(naive_date_time) => match self.rtc.set_datetime(&LocalTimeZone.from_local_datetime(&naive_date_time).unwrap().with_timezone(&UTC).naive_utc()){
                 Ok(_) => (),
                 Err(e) => match e{
                     ds323x::Error::InvalidInputData => info!("rtc set datetime error: Invalid input data"),
@@ -41,21 +40,18 @@ impl RTC{
         }
     }
     pub fn get_time(&mut self) -> Option<NaiveTime>{
-        return match self.rtc.time(){
-            Ok(time) => Some(time),
-            Err(_e) => None
-        }
+        Some(self.get_date_time()?.time())
     }
     pub fn get_date_time(&mut self) -> Option<NaiveDateTime>{
         return match self.rtc.datetime(){
-            Ok(time) => Some(time),
+            Ok(datetime) => Some(UTC.from_utc_datetime(&datetime).with_timezone(&LocalTimeZone).naive_local()),
             Err(_e) => None
         }
     }
     pub fn get_time_hh_mm(&mut self) ->Option<String<5>>{
-        return match self.rtc.time(){
-            Ok(time) => Some(Self::format_time_hh_mm(&time)),
-            Err(_e) => None
+        return match self.get_time(){
+            Some(time) => Some(Self::format_time_hh_mm(&time)),
+            None => None
         }
     }
     pub fn format_time_hh_mm(time: &NaiveTime) ->String<5>{
@@ -64,6 +60,7 @@ impl RTC{
     #[cfg(not(debug_assertions))]
     pub fn sleep_deep(&mut self) -> !{
         use esp_hal::rtc_cntl::sleep::RtcioWakeupSource;
+        use esp_hal::{rtc_cntl::sleep::WakeupLevel};
 
         self.rtc.clear_alarm1_matched_flag().unwrap();
         self.mcu_rtc.sleep_deep(&[&RtcioWakeupSource::new(&mut [(&mut self.wake_pin, WakeupLevel::Low)])])
@@ -72,6 +69,7 @@ impl RTC{
     pub fn sleep_deep(&mut self) -> !{
         use esp_hal::rtc_cntl::sleep::TimerWakeupSource;
         use core::time::Duration;
+        use ds323x::Rtcc;
 
         let seconds_left_to_a_full_minute = (61 - self.rtc.seconds().unwrap()) as u64;
         self.mcu_rtc.sleep_deep(&[&TimerWakeupSource::new(Duration::from_secs(seconds_left_to_a_full_minute))])
@@ -83,7 +81,7 @@ impl RTC{
             minute: 0,//Ignored
             second: 0
         };
-        self.rtc.set_alarm1_day(alarm, ds323x::Alarm1Matching::SecondsMatch).unwrap();
+        self.rtc.set_alarm1_day(alarm, ds323x::Alarm1Matching::SecondsMatch).unwrap_or_else(|x| info!("{:?}", x));
         self.rtc.enable_alarm1_interrupts().unwrap();
     }
 }
