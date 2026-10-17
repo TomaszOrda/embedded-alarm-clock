@@ -137,6 +137,7 @@ async fn main(spawner: Spawner) -> ! {
         alarm(buzzer, 120, 1.0, button).await;
     } else{
         update_display(&mut epaper_display, rtc.get_time().unwrap());
+        let _ = epaper_display.sleep();
     }
     
     info!("Going to sleep");

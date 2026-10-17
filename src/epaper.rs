@@ -97,4 +97,7 @@ impl EPaperDisplay
     fn should_full_refresh(&self) -> bool{
         return self.rng.random() % Self::FULL_REFRESH_ONE_IN_N == 1
     }
+    pub fn sleep(&mut self) -> Result<(), embedded_hal_bus::spi::DeviceError<esp_hal::spi::Error, core::convert::Infallible>>{
+        self.epd2in9.sleep(&mut self.spi_dev, &mut self.delay)
+    }
 }
