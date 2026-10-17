@@ -17,3 +17,12 @@ This project started using https://github.com/esp-rs/esp-generate/tree/main temp
 Button is responsible for both LED (epaper has no backlit and can be hard to read in low light environment) and interrupting alarm. This is double use is dictated by the number of available GPIOS, however all in all I think it is a good minimalistic design.
 
 CLI establishes pairing with a usb connected clock. Commands like `help`, `set-time`, `set-alarm` can be used. A clock reset is needed after finished configuration to come back to the normal non-pairing mode.
+
+### Hardware
+
+This board can use either DS3231 or DS1307. Wokwi only supports DS1307, but the whole project was built with DS3231 in mind.
+
+DS3231 has an onboard LED that drains a substantial amount of power compared to the rest of the device. [A solution](https://forum.arduino.cc/t/safe-to-remove-power-led-from-ds3231-clock-module/217686) is to desolder `102` resistor right next to it.
+
+Buzzer can be replaced with a coin cell vibration motor for a more pleasant (lower frequency) alarm experience. Wokwi does not support such hardware thus simple buzzer was used for simulation. However such motors require usually ~70mA current which is way more than GPIO can output. It will work using 40mA mode through a small resistor to limit pin wear — GPIOs should not be used too much above 20mA. A better solution is to use a N-MOSFET, basically any long-legged version like 2N7000 should work fine.
+
