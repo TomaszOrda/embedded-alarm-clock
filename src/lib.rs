@@ -4,3 +4,4 @@ pub mod buzzer;
 pub mod rtc;
 pub mod epaper;
 pub mod protocol;
+pub mod fonts;

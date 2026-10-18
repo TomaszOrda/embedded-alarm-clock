@@ -2,7 +2,14 @@ use embedded_graphics::draw_target::DrawTarget;
 use embedded_graphics::geometry::Point;
 use embedded_graphics::primitives::{Circle, PrimitiveStyle};
 use embedded_graphics::prelude::*;
-use u8g2_fonts::fonts::u8g2_font_logisoso92_tn;
+// use crate::fonts::AntonSc as Font;
+// use crate::fonts::Iceberg as Font; 
+// use crate::fonts::ImFellEnglishSc as Font; 
+// use crate::fonts::JimNightshade as Font;
+// use crate::fonts::MonsieurLaDoulaise as Font; 
+// use crate::fonts::SpecialElite as Font; 
+use crate::fonts::UnicaOne as Font; 
+// use crate::fonts::UnifrakturMaguntia as Font;
 use u8g2_fonts::{FontRenderer};
 use embedded_hal_bus::spi::ExclusiveDevice;
 use epd_waveshare::{epd2in9_v2::*, prelude::*};
@@ -60,7 +67,7 @@ impl EPaperDisplay
         .unwrap();
     }
     pub fn draw_text(&mut self, text:&str){
-        let renderer : FontRenderer = FontRenderer::new::<u8g2_font_logisoso92_tn>();
+        let renderer : FontRenderer = FontRenderer::new::<Font>();
         self.display.clear(Color::White);
         renderer.render_aligned(
             text,
