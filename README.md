@@ -34,6 +34,21 @@ Because of the limited number of pins we can not really disable the alarm withou
 
 The two switch and one button system might seem unreasonable. However, I began to like its character a lot. More so because of the minimalistic controls it should not be misleading. In the end each input has a specific task it performs and limited side effects.
 
+### Power consumption
+
+Assuming one alarm per day runing for 10 seconds, similar amount for LED, 2s cycle every minute with 1.5s epaper refresh I assume following (thise just are rough estimates):
+
+| Device   | Power active | Power standby | Daily energy consumption |
+| -------- | ------- | ------- | ------- | 
+| Coin cell vibrator | $50mA$ | $0A$ | $0.139mAh \approx 50mA *10s/2 $|
+| EPD | $10mA$ | $5\mu A$  | $6.120mAh \approx 10mA *1440 *1.5s + 5\mu A *24h$|
+| ESP32C3 | $15mA$ | $45\mu A$  | $13.080mAh \approx 15mA *1440 *2s + 45\mu A *24h$|
+| DS3231 | $80\mu A$ | $80\mu A$  | $1.920mAh \approx 80\mu A *24h$|
+| LED | $1mA$ | $0 A$  | $0.003mAh \approx 1mA *10s$|
+| **Total** | $76mA$ | $105\mu A$ | $21.262mAh$ | 
+
+Which should last for more than 3 months using $2200mAh$ LiPo battery. This was not yet tested. I expect the usable batter charge to be considerably less.
+
 ### Known issues
 
 The epaper display currently can only do a full refresh. Through something that is likely a library issue, partial refresh works just as a full refresh. I have not yet found a solution to this. It is important because of the annoying flickering during full flush and wake-time amount (power consumption).
