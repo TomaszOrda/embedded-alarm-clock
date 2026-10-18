@@ -37,13 +37,6 @@
             "left": 100,
             "attrs": { "value": "1000" }
         },
-        {   "type": "wokwi-resistor",
-            "id": "r4",
-            "top": 100,
-            "left": 55,
-            "attrs": { "value": "10000" },
-            "rotate": 270
-        },
         {   "type": "wokwi-buzzer",
             "id": "buzz",
             "top": -180,
@@ -89,9 +82,6 @@
 
         [ "btn:1.r", "esp:GND", "black", [ "h5", "v10" ] ],
         [ "btn:2.l", "esp:D7", "green", ["h-10", "v-40", "h77", "v-10"] ],
-        [ "r4:1", "btn:2.r", "green", [ "v10" ] ],
-
-        [ "r4:2", "esp:3V3", "red", ["v10"] ],
         
         [ "r3:2", "led2:C", "green", [ ] ],
         [ "led2:A", "esp:3V3", "red", [ "h-72", "v10"] ],
