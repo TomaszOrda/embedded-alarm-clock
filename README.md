@@ -34,6 +34,12 @@ Because of the limited number of pins we can not really disable the alarm withou
 
 The two switches and one button system might seem unreasonable. However, I began to like its character a lot. More so because of the minimalistic controls it should not be misleading. In the end each input has a specific task it performs and limited side effects.
 
+### Fonts
+
+There are several fonts to choose. Just import the right one in `epaper.rs`. Some centering adjustment might be required.
+
+To import any font, get a hold of `.ttf` file (for example from https://fonts.google.com/). Then through [FontForge](https://fontforge.org/en-US/) set Element > Bitmap size to 112 or 96 or something similar. Next generate as bdf. Generated sized bdf file has to go through another [coverter](https://bdfconv.lachlanl.au/) with commands `-v -f 0 -m "48-57,58"` to extract only arabic numbers. A C table of bytes is generated that then need to be converted to Rust `u8` table as in `fonts.rs`. Then make struct and `impl u8g2_fonts::Font` as in any other example.
+
 ### Power consumption
 
 Assuming one alarm per day runing for 10 seconds, similar amount for LED, 2s cycle every minute with 1.5s epaper refresh I assume following (thise just are rough estimates):
