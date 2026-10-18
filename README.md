@@ -30,9 +30,9 @@ DS3231 has an onboard LED that drains a substantial amount of power compared to 
 
 Buzzer can be replaced with a coin cell vibration motor for a more pleasant (lower frequency) alarm experience. Wokwi does not support such hardware, thus a simple buzzer was used for simulation. However such motors usually require ~70mA current which is way more than GPIO can output. It will work using 40mA mode through a small resistor to limit pin wear — GPIOs should not be used too much above 20mA. A better solution is to use a N-MOSFET, basically any long-legged version like 2N7000 should work fine.
 
-Because of the limited number of pins we can not really disable the alarm without disabling the button$\rightarrow$LED interaction. That is why the second switch turns the LED — providing a lightswitch working regardless of if the button/alarm is disabled or not. Alarm disabling switch can be replaced with a wire between button 2.r and LED resistor. The lightswitch can be removed completely without much impact on the whole system.
+Because of the limited number of pins we can not really disable the alarm without disabling the button$\rightarrow$LED interaction. That is why the second switch turns the LED — providing a lightswitch working regardless of if the button/alarm is disabled or not. Alarm disabling switch can be replaced with a wire between button 2.r and LED resistor. The lightswitch can be replaced with wires — same as their default state — without much impact on the whole system.
 
-The two switch and one button system might seem unreasonable. However, I began to like its character a lot. More so because of the minimalistic controls it should not be misleading. In the end each input has a specific task it performs and limited side effects.
+The two switches and one button system might seem unreasonable. However, I began to like its character a lot. More so because of the minimalistic controls it should not be misleading. In the end each input has a specific task it performs and limited side effects.
 
 ### Power consumption
 
