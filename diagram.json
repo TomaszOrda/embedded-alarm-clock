@@ -33,8 +33,8 @@
         },
         {   "type": "wokwi-resistor",
             "id": "r3",
-            "top": 156,
-            "left": 90,
+            "top": 176,
+            "left": 100,
             "attrs": { "value": "1000" }
         },
         {   "type": "wokwi-resistor",
@@ -55,6 +55,19 @@
             "top": -77, 
             "left": 120, 
             "attrs": {} 
+        },
+        {   "type": "wokwi-slide-switch", 
+            "id": "switch1", 
+            "top": 180, 
+            "left": 60,
+            "rotate": 180,
+            "attrs": {} 
+        },
+        {   "type": "wokwi-slide-switch", 
+            "id": "switch2", 
+            "top": 109, 
+            "left": 110,
+            "attrs": { "value": "1" }
         }
     ],
     "connections": [
@@ -67,9 +80,15 @@
         [ "epd:RST", "esp:D0", "white", [ "h-145", "v100" ] ],
         [ "epd:BUSY", "esp:D1", "purple", [ "h-150", "v100" ] ],
 
+        [ "switch1:3", "btn:1.l", "green", [ "h-80", "v0" ] ],
+        [ "switch1:2", "btn:2.r", "green", [ "v10" ] ],
+        [ "switch1:1", "r3:1", "green", [ "h10" ] ],
+        
+        [ "switch2:1", "btn:1.r", "black", [ "v10" ] ],
+        [ "switch2:2", "led2:C", "green", [ "v20", "h10" ] ],
+
         [ "btn:1.r", "esp:GND", "black", [ "h5", "v10" ] ],
         [ "btn:2.l", "esp:D7", "green", ["h-10", "v-40", "h77", "v-10"] ],
-        [ "btn:2.r", "r3:1", "green", [ ] ],
         [ "r4:1", "btn:2.r", "green", [ "v10" ] ],
 
         [ "r4:2", "esp:3V3", "red", ["v10"] ],
